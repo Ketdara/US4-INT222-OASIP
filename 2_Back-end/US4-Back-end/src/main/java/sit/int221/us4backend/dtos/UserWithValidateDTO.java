@@ -24,7 +24,7 @@ public class UserWithValidateDTO {
 
     @NotBlank(message = "User Email cannot be null; ")
     @Email(message = "User Email is not valid; ")
-    @Size(max = 100, message = "User Email cannot exceed 100 characters; ")
+    @Size(max = 50, message = "User Email cannot exceed 50 characters; ")
     private String email;
 
     @NotBlank(message = "User Role cannot be null; ")

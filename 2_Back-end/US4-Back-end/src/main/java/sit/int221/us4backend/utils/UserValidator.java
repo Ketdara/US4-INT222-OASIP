@@ -31,9 +31,7 @@ public class UserValidator {
         if(newUserDTO.getName() == null) return "";
 
         boolean isUnique = !userDTOs.stream().anyMatch(userDTO -> {
-            if(newUserDTO.getId().equals(userDTO.getId())){
-                return false;
-            }
+            if(newUserDTO.getId() != null && newUserDTO.getId().equals(userDTO.getId())) return false;
             return newUserDTO.getName().equals(userDTO.getName());
         });
         if(isUnique) return "";
@@ -44,9 +42,7 @@ public class UserValidator {
         if(newUserDTO.getEmail() == null) return "";
 
         boolean isUnique = !userDTOs.stream().anyMatch(userDTO -> {
-            if(newUserDTO.getId().equals(userDTO.getId())){
-                return false;
-            }
+            if(newUserDTO.getId() != null && newUserDTO.getId().equals(userDTO.getId())) return false;
             return newUserDTO.getEmail().equals(userDTO.getEmail());
         });
         if(isUnique) return "";

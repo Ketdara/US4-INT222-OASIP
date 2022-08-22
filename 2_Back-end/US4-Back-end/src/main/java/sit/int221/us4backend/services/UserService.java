@@ -14,6 +14,7 @@ import sit.int221.us4backend.repositories.UserRepository;
 import sit.int221.us4backend.utils.ListMapper;
 import sit.int221.us4backend.utils.UserValidator;
 
+import javax.transaction.Transaction;
 import java.util.List;
 
 @Service
@@ -48,28 +49,30 @@ public class UserService {
         return modelMapper.map(user, UserFullDTO.class);
     }
 
-    public User postUserDTO(UserWithValidateDTO newUserDTO) {
+    public void postUserDTO(UserWithValidateDTO newUserDTO) {
         trimUserField(newUserDTO);
         callUserValidator(newUserDTO, false);
 
-//        newUserDTO.setUserStartTime(dateTimeManager.ISOStringToDateString(newUserDTO.getUserStartTime()));
-        User newUser = modelMapper.map(newUserDTO, User.class);
-        return userRepository.saveAndFlush(newUser);
+//        User newUser = modelMapper.map(newUserDTO, User.class);
+//        return userRepository.saveAndFlush(newUser);
+
+        userRepository.createUser(newUserDTO.getName(), newUserDTO.getEmail(), newUserDTO.getRole());
     }
 
-    public User putUserDTO(UserWithValidateDTO newUserDTO, Integer user_id) {
+    public void putUserDTO(UserWithValidateDTO newUserDTO, Integer user_id) {
         trimUserField(newUserDTO);
         callUserValidator(newUserDTO, true);
 
-//        newUserDTO.setUserStartTime(dateTimeManager.ISOStringToDateString(newUserDTO.getUserStartTime()));
-        User newUser = modelMapper.map(newUserDTO, User.class);
-        User user = userRepository.findById(user_id).map(oldUser -> mapUser(oldUser, newUser))
-                .orElseGet(() ->
-                {
-                    newUser.setId(user_id);
-                    return newUser;
-                });
-        return userRepository.saveAndFlush(user);
+//        User newUser = modelMapper.map(newUserDTO, User.class);
+//        User user = userRepository.findById(user_id).map(oldUser -> mapUser(oldUser, newUser))
+//                .orElseGet(() ->
+//                {
+//                    newUser.setId(user_id);
+//                    return newUser;
+//                });
+//        return userRepository.saveAndFlush(user);
+
+        userRepository.updateUser(newUserDTO.getName(), newUserDTO.getEmail(), newUserDTO.getRole(), user_id);
     }
 
     private UserWithValidateDTO trimUserField(UserWithValidateDTO newUserDTO) {
