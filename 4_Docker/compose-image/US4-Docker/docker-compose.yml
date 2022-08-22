@@ -1,0 +1,29 @@
+services:
+  us4-db:
+    image: mysql/mysql-server:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: int221
+      MYSQL_PASSWORD: int221
+      MYSQL_USER: dbconn
+      MYSQL_DATABASE: us4db
+    volumes:
+      - ./script/dbscript.sql:/docker-entrypoint-initdb.d/dbscript.sql
+  us4-be:
+    image: us4-docker_us4-be
+    restart: always
+    environment:
+      SPRING_DATASOURCE_PASSWORD: int221
+      SPRING_DATASOURCE_USER: dbconn
+      SPRING_DATASOURCE_NAME: us4db
+      SPRING_DATASOURCE_URL: jdbc:mysql://us4-db:3306/us4db
+      SERVER_PORT: 8080
+      SERVER_ERROR_INCLUDE-MESSAGE: always
+      SERVER_ERROR_INCLUDE-STACKTRACE: never
+  us4-fe:
+    image: us4-docker_us4-fe
+    restart: always
+  us4-proxy:
+    image: us4-docker_us4-proxy
+    ports:
+      - 80:80
+    restart: always
