@@ -76,10 +76,10 @@ insert into `event`(`bookingName`,`bookingEmail`,`eventCategory_id`,`eventStartT
 
 -- insert to user --
 INSERT INTO `user`(`name`,`email`,`role`) VALUES 
-('สมเกียรติ ไม่ขยันเรียน','somkiat.mai@kmutt.ac.th','admin'),
+('OASIP ADMIN','oasip.admin@kmutt.ac.th','admin'),
 ('Somchai Jaidee','somchai.jai@kmutt.ac.th','lecturer'),
-('Komkrid Rakdee','komkrid.rak@mail.kmutt.ac.th','lecturer'),
-('OASIP ADMIN','oasip.admin@kmutt.ac.th','admin');
+('Komkrid Rakdee','komkrid.rak@mail.kmutt.ac.th','student'),
+('สมเกียรติ ไม่ขยันเรียน','somkiat.mai@kmutt.ac.th','student');
 
 -- ----------------------- --
 create user 'dbconn'@'%' identified by 'int221';

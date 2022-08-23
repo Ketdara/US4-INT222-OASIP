@@ -59,6 +59,7 @@ const postUser = async (user) => {
 const putUser = async (user) => {
   if(await userAPI.putUser(user)) {
     updateUsers();
+    getUserById(user.id);
     isEditing.value = false;
   }
 }

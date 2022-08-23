@@ -19,7 +19,7 @@ const props = defineProps({
 })
 
 const putConfirmation = () => {
-  var sameUser = newName.value == props.user.name && newEmail.value == props.user.email && newRole.value == props.user.role;
+  var sameUser = newName.value.trim() == props.user.name && newEmail.value.trim() == props.user.email && newRole.value.trim() == props.user.role;
   if(sameUser === true){
     alert("User information unchanged")
     return false;
@@ -31,9 +31,9 @@ const putConfirmation = () => {
 }
 
 const mapUser = () => {
-  props.user.name = newName.value;
-  props.user.email = newEmail.value;
-  props.user.role = newRole.value;
+  props.user.name = newName.value.trim();
+  props.user.email = newEmail.value.trim();
+  props.user.role = newRole.value.trim();
 }
 
 const newName = ref(props.user.name);
@@ -57,8 +57,8 @@ const newRole = ref(props.user.role);
     </ul>
     <ul class="my-4">
       <li class="m-2 font-bold text-l">Time Information:</li>
-      <li class="m-2">Created ▸ {{ user.createdOn }}</li>
-      <li class="m-2">Updated ▸ {{ user.updatedOn }}</li>
+      <li class="m-2">Created ▸ {{ new Date(user.createdOn) }}</li>
+      <li class="m-2">Updated ▸ {{ new Date(user.updatedOn) }}</li>
     </ul>
     <div class="float-right">
       <button
