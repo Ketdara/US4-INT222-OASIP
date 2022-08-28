@@ -4,9 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import sit.int221.us4backend.dtos.CredentialsDTO;
 import sit.int221.us4backend.dtos.UserFullDTO;
+import sit.int221.us4backend.dtos.UserPartialDTO;
 import sit.int221.us4backend.dtos.UserWithValidateDTO;
-import sit.int221.us4backend.entities.User;
 import sit.int221.us4backend.services.UserService;
 
 //@CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -17,7 +18,7 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("")
-    public Page<UserWithValidateDTO> getUsersAll(
+    public Page<UserPartialDTO> getUsersAll(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "5") Integer pageSize) {
         return userService.getUserDTOsAsPage(page, pageSize);
@@ -42,5 +43,10 @@ public class UserController {
     @DeleteMapping("/{user_id}")
     public void deleteUser(@PathVariable Integer user_id) {
         userService.deleteUserDTOById(user_id);
+    }
+
+    @PostMapping("/match")
+    public void authenticateUser(@RequestBody CredentialsDTO userCredentials) {
+        userService.authenticateCredentials(userCredentials.getEmail(), userCredentials.getPassword());
     }
 }

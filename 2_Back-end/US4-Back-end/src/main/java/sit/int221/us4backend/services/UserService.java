@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.*;
@@ -15,6 +16,9 @@ import sit.int221.us4backend.utils.ListMapper;
 import sit.int221.us4backend.utils.UserValidator;
 
 import javax.transaction.Transaction;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -27,25 +31,27 @@ public class UserService {
     private ListMapper listMapper;
     @Autowired
     private UserValidator userValidator;
+    @Autowired
+    private Argon2PasswordEncoder argon2Encoder;
 
     private Sort sort = Sort.by("name").ascending();
 
-    public Page<UserWithValidateDTO> getUserDTOsAsPage(Integer page, Integer pageSize) {
+    public Page<UserPartialDTO> getUserDTOsAsPage(Integer page, Integer pageSize) {
         Page<User> userPage = userRepository.findAll(PageRequest.of(page, pageSize, sort));
-//        return mapPageAndFormatStartTime(userPage);
-        return userPage.map(entity -> modelMapper.map(entity, UserWithValidateDTO.class));
+
+        return userPage.map(entity -> modelMapper.map(entity, UserPartialDTO.class));
     }
 
-    public List<UserWithValidateDTO> getUserDTOsAsList() {
+    public List<UserPartialDTO> getUserDTOsAsList() {
         List<User> userList = userRepository.findAll();
-//        return mapPageAndFormatStartTime(userPage);
-        return listMapper.mapList(userList, UserWithValidateDTO.class, modelMapper);
+
+        return listMapper.mapList(userList, UserPartialDTO.class, modelMapper);
     }
 
     public UserFullDTO getUserDTOById(Integer user_id) {
         User user = userRepository.findById(user_id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + user_id + " not found or does not exist."));
-//        user.setUserStartTime(dateTimeManager.dateStringToISOString(user.getUserStartTime()));
+
         return modelMapper.map(user, UserFullDTO.class);
     }
 
@@ -53,24 +59,14 @@ public class UserService {
         trimUserField(newUserDTO);
         callUserValidator(newUserDTO, false);
 
-//        User newUser = modelMapper.map(newUserDTO, User.class);
-//        return userRepository.saveAndFlush(newUser);
+        String hashedPassword = argon2Encoder.encode(newUserDTO.getPassword());
 
-        userRepository.createUser(newUserDTO.getName(), newUserDTO.getEmail(), newUserDTO.getRole());
+        userRepository.createUser(newUserDTO.getName(), newUserDTO.getEmail(), newUserDTO.getRole(), hashedPassword);
     }
 
     public void putUserDTO(UserWithValidateDTO newUserDTO, Integer user_id) {
         trimUserField(newUserDTO);
         callUserValidator(newUserDTO, true);
-
-//        User newUser = modelMapper.map(newUserDTO, User.class);
-//        User user = userRepository.findById(user_id).map(oldUser -> mapUser(oldUser, newUser))
-//                .orElseGet(() ->
-//                {
-//                    newUser.setId(user_id);
-//                    return newUser;
-//                });
-//        return userRepository.saveAndFlush(user);
 
         userRepository.updateUser(newUserDTO.getName(), newUserDTO.getEmail(), newUserDTO.getRole(), user_id);
     }
@@ -100,7 +96,7 @@ public class UserService {
         violationStringBuilder.append(userValidator.annotationValidate(newUserDTO));
 
         if(newUserDTO.getName() != null || newUserDTO.getEmail() != null) {
-            List<UserWithValidateDTO> userDTOs = getUserDTOsAsList();
+            List<UserPartialDTO> userDTOs = getUserDTOsAsList();
 
             if(newUserDTO.getName() != null) {
                 violationStringBuilder.append(userValidator.uniqueNameValidate(newUserDTO, userDTOs));
@@ -113,5 +109,18 @@ public class UserService {
 
         String violationString = violationStringBuilder.toString();
         if(violationString.length() > 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Input not valid; " + violationString);
+    }
+
+    public void authenticateCredentials(String email, String password) {
+        try {
+            User DBUser = userRepository.findByEmail(email);
+
+            if(!argon2Encoder.matches(password, DBUser.getPassword())) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password incorrect.");
+            }
+
+        }catch(NullPointerException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + email + " not found or does not exist.");
+        }
     }
 }

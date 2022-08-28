@@ -30,4 +30,8 @@ public class UserWithValidateDTO {
     @NotBlank(message = "User Role cannot be null; ")
     @EnumRole(enumClass = Role.class)
     private String role;
+
+    @NotBlank(message = "Password cannot be null; ")
+    @Size(min = 8,max = 14, message = "Password must be between 8-14 characters; ")
+    private String password;
 }

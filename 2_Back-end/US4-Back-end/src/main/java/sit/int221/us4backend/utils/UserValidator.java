@@ -1,6 +1,8 @@
 package sit.int221.us4backend.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import sit.int221.us4backend.dtos.UserFullDTO;
+import sit.int221.us4backend.dtos.UserPartialDTO;
 import sit.int221.us4backend.dtos.UserWithValidateDTO;
 
 import javax.validation.ConstraintViolation;
@@ -27,7 +29,7 @@ public class UserValidator {
         return stringBuilder.toString();
     }
 
-    public String uniqueNameValidate(UserWithValidateDTO newUserDTO, List<UserWithValidateDTO> userDTOs) {
+    public String uniqueNameValidate(UserWithValidateDTO newUserDTO, List<UserPartialDTO> userDTOs) {
         if(newUserDTO.getName() == null) return "";
 
         boolean isUnique = !userDTOs.stream().anyMatch(userDTO -> {
@@ -38,7 +40,7 @@ public class UserValidator {
         return "User name must be unique; ";
     }
 
-    public String uniqueEmailValidate(UserWithValidateDTO newUserDTO, List<UserWithValidateDTO> userDTOs) {
+    public String uniqueEmailValidate(UserWithValidateDTO newUserDTO, List<UserPartialDTO> userDTOs) {
         if(newUserDTO.getEmail() == null) return "";
 
         boolean isUnique = !userDTOs.stream().anyMatch(userDTO -> {
@@ -49,11 +51,4 @@ public class UserValidator {
         return "User email must be unique; ";
     }
 
-//    public String putFieldValidate(UserWithValidateDTO newUser, UserWithValidateDTO oldUser) {
-//        boolean isSameCreatedTime = newUser.getName().equals(oldUser.getName());
-//        boolean isSameUpdatedTime = newUser.getEmail().equals(oldUser.getEmail());
-//        boolean isSameRole = newUser.getRole() == oldUser.getRole();
-//        if(isSameName && isSameEmail && isSameRole) return "";
-//        return "Cannot edit other field other than start time and notes; ";
-//    }
 }

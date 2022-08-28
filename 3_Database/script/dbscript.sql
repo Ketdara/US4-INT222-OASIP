@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS `us4db`.`user` (
   `user_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL,
   `email` VARCHAR(100) NOT NULL,
+  `password` CHAR(90) NOT NULL,
   `role` ENUM('admin', 'lecturer', 'student') NOT NULL DEFAULT 'student',
   `createdOn` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updatedOn` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -75,16 +76,15 @@ insert into `event`(`bookingName`,`bookingEmail`,`eventCategory_id`,`eventStartT
 ('สมเกียรติ ขยันเรียน กลุ่ม TT-4','somkiat.kay@kmutt.ac.th',3,'2022-05-23 9:30:00',15,null);
 
 -- insert to user --
-INSERT INTO `user`(`name`,`email`,`role`) VALUES 
-('OASIP ADMIN','oasip.admin@kmutt.ac.th','admin'),
-('Somchai Jaidee','somchai.jai@kmutt.ac.th','lecturer'),
-('Komkrid Rakdee','komkrid.rak@mail.kmutt.ac.th','student'),
-('สมเกียรติ ไม่ขยันเรียน','somkiat.mai@kmutt.ac.th','student');
+INSERT INTO `user`(`name`,`email`,`password`,`role`) VALUES 
+('OASIP ADMIN','oasip.admin@kmutt.ac.th','$argon2i$v=19$m=12,t=3,p=1$MnhsOTVoc2p1bXMwMDAwMA$wi9TNxjx7eVIeyyvLrxMOQ','admin'),
+('Somchai Jaidee','somchai.jai@kmutt.ac.th','$argon2i$v=19$m=12,t=3,p=1$dWJscDloanA3enMwMDAwMA$LKoX31LeYm1h+t5oOyB5ww','lecturer'),
+('Komkrid Rakdee','komkrid.rak@mail.kmutt.ac.th','$argon2i$v=19$m=12,t=3,p=1$bnYxNDY2aDVzdTAwMDAwMA$1pURRWXxJWX/UU9PGh3rcQ','student');
 
 -- ----------------------- --
-create user 'dbconn'@'%' identified by 'int221';
-grant all privileges on *.* TO 'dbconn'@'%';
-flush privileges;
+-- create user 'dbconn'@'%' identified by 'int221';
+-- grant all privileges on *.* TO 'dbconn'@'%';
+-- flush privileges;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
