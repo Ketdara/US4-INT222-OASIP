@@ -113,14 +113,14 @@ public class UserService {
 
     public void authenticateCredentials(String email, String password) {
         try {
-            User DBUser = userRepository.findByEmail(email);
+            User DBUser = userRepository.findByEmail(email.trim());
 
-            if(!argon2Encoder.matches(password, DBUser.getPassword())) {
+            if(!argon2Encoder.matches(password.trim(), DBUser.getPassword())) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password incorrect.");
             }
 
         }catch(NullPointerException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + email + " not found or does not exist.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + email.trim() + " not found or does not exist.");
         }
     }
 }

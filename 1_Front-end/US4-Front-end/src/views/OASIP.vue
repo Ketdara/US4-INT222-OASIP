@@ -126,11 +126,11 @@ const toggleModal = () => {
 </script>
 
 <template>
-<div>
+<div class="pb-5">
   <div class="bg-black p-4 px-7 text-white">
     <h1 class="font-semibold text-2xl">OASIP</h1>
     <p class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
-    <button class="font-semibold float-right" @click="toggleModal">Event Category</button>
+    <button class="mr-10 font-semibold float-right" @click="toggleModal">Event Category</button>
   </div>
   <div>
     <view-config-event-category

@@ -42,6 +42,7 @@ export const userAPI = {
         name: user.name,
         email: user.email,
         role: user.role,
+        password: user.password
       })
     })
 
@@ -68,7 +69,7 @@ export const userAPI = {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.role
       })
     })
 
@@ -106,4 +107,29 @@ export const userAPI = {
     alert('Error occurred when deleting user');
     return false;
   },
+
+  loginUser: async function (user) {
+    const res = await fetch(import.meta.env.VITE_BASE_URL + 'users/match', { method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        email: user.email,
+        password: user.password
+      })
+    })
+
+    if(res.status === 200){
+      console.log('[loginUser] Successful');
+      return true;
+    }
+    if(res.status === 400 || res.status === 401 || res.status === 404) {
+      res.json().then(promise => {
+        console.log('[loginUser] Error: ' + promise.message.replace(/; /g, '\n'));
+        alert(promise.message.replace(/; /g, '\n'));
+      });
+      return false;
+    }
+    console.log('[loginUser] Error: Unknown');
+    alert('Error occurred when login user');
+    return false;
+  }
 };

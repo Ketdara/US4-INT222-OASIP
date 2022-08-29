@@ -1,11 +1,11 @@
 <script setup>
 import { ref, onBeforeMount } from 'vue';
 import { userAPI } from "../script/userAPI.js";
-
 import ViewUserList from '../components/ViewUserList.vue';
 import ViewUserDetails from '../components/ViewUserDetails.vue';
 import CreateUser from '../components/CreateUser.vue';
 import EditUser from '../components/EditUser.vue';
+import LoginUser from '../components/LoginUser.vue';
 
 const user = ref({});
 const userList = ref([]);
@@ -74,7 +74,8 @@ const deleteUser = async (id) => {
 var postUI = ref({
   name: null,
   email: null,
-  role: null
+  role: null,
+  password: null
 })
 
 const resetPostUI = () => {
@@ -88,15 +89,35 @@ const isEditing = ref(false);
 const toggleEdit = () => {
   isEditing.value = !isEditing.value;
 }
+
+const isModalOpen = ref(false);
+const toggleModal = () => {
+  isModalOpen.value = !isModalOpen.value;
+}
+
+const login = async (credentials) => {
+  if(await userAPI.loginUser(credentials)) {
+    alert("Login Successful");
+  }
+}
 </script>
 
 <template>
-<div>
-  <div class="bg-black p-4 px-7 text-white ">
+<div class="pb-5">
+  <div>
+    <login-user
+      v-if="isModalOpen"
+      @toggleModal="toggleModal"
+      @callLoginUser="login"/>
+  </div>
+  <div class="bg-black p-4 px-7 text-white">
     <h1 class="font-semibold text-2xl">OASIP</h1>
     <p class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
+    <button class="mr-10 font-semibold float-right" @click="toggleModal">Login</button>
+      <!-- Login -->
+
+  <!-- End-Login -->
   </div>
-  <!-- --------- -->
   <div class="px-8">
     <div class="mt-8 grid grid-cols-2 gap-x-10 gap-y-8 rounded-lg">
       <!-- User List -->

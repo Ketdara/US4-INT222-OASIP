@@ -12,33 +12,48 @@ const props = defineProps({
     default: {
       name: null,
       email: null,
-      role: null
+      role: null,
+      password: null
     }
   }
 })
-
-// const roleList = ref(['admin', 'lecturer', 'student'])
-
-const selectedRole = ref(null)
-// const newUserRole = computed(() => {
-//   return roleList.value.find(role => role === selectedRole.value)
-// });
 
 const newUser = computed(() => {
   return {
     name: props.user.name,
     email: props.user.email,
-    // role: newUserRole.value ? newUserRole.value : 'student',
-    role: selectedRole.value ? selectedRole.value : 'student',
+    role: newRole.value ? newRole.value : 'student',
+    password: newPassword.value
   }
 });
+
+const newRole = ref(null)
+
+const newPassword = ref(null)
+const confirmPassword = ref(null)
+const checkConfirmPassword = () => {
+  if(newPassword.value === confirmPassword.value){
+    return true;
+  }else{
+    alert("Confirm password do not match");
+    return false;
+  }
+}
 
 const checkInputInvalid = () => {
   if(newUser.value.name === null || newUser.value.name.trim().length === 0 || newUser.value.name.trim().length > 100) return true;
   if(newUser.value.email === null || newUser.value.email.trim().length === 0 || newUser.value.email.trim().length > 50) return true;
-  // if(newUser.value.role === null) return true;
+  if(newPassword.value === null || newPassword.value.trim().length === 0 || newPassword.value.trim().length < 8 || newPassword.value.trim().length > 14 || newPassword.value.match(/\s/g)) return true;
+  if(confirmPassword.value === null || confirmPassword.value.trim().length === 0 || confirmPassword.value.trim().length < 8 || confirmPassword.value.trim().length > 14) return true;
+
   return false;
 }
+
+const isShowPassword = ref(false)
+const toggleShowPassword = () => {
+  isShowPassword.value = !isShowPassword.value
+}
+
 </script>
 
 <template>
@@ -48,6 +63,8 @@ const checkInputInvalid = () => {
       <ul>
         <li class="m-1">Name:</li>
         <li class="m-1">Email:</li>
+        <li class="m-1">Password:</li>
+        <li class="m-1">Confirm Password:</li>
         <li class="m-1">Role:</li>
       </ul>
     </div>
@@ -55,16 +72,28 @@ const checkInputInvalid = () => {
       <ul>
         <li class="m-1"><input class="input" type="text" v-model="user.name"></li>
         <li class="m-1"><input class="input" type="text" v-model="user.email"></li>
+        <li class="m-1"><input class="input" :type="isShowPassword ? 'text' : 'password'" v-model="newPassword"></li>
+        <li class="m-1"><input class="input" :type="isShowPassword ? 'text' : 'password'" v-model="confirmPassword"></li>
+
         <li class="m-1">
-          <select class="input" v-model="selectedRole">
+          <select class="input" v-model="newRole">
             <option v-for="role in roleList" :key="role">{{role}}</option>
           </select>
         </li>
       </ul>
-    </div><div class="columnC text-white">
+    </div>
+    <div class="columnC text-white">
       <ul>
-        <li class="m-1"><span v-if="user.name !== null"><span v-if="user.name.trim().length > 0" :style="user.name.trim().length <= 100 ? { color: 'white' } : { color: 'red' }">{{user.name.trim().length}}/100</span></span><br v-else></li>
-        <li class="m-1"><span v-if="user.email !== null"><span v-if="user.email.trim().length > 0" :style="user.email.trim().length <= 50 ? { color: 'white' } : { color: 'red' }">{{user.email.trim().length}}/50</span></span><br v-else></li>
+        <li class="m-1"><br></li>
+        <li class="m-1"><br></li>
+        <li class="m-2"><i id="show"><img :src="isShowPassword ? '/us4/src/assets/hidden.png' : '/us4/src/assets/eye.png'"  width="20" @click="toggleShowPassword()"></i></li>
+      </ul>
+    </div>
+    <div class="columnD text-white">
+      <ul>
+        <li class="m-1"><span v-if="user.name !== null"><span v-if="user.name.trim().length > 0" :style="user.name.trim().length <= 100 ? { color: 'white' } : { color: 'red' }">{{user.name.trim().length}}/100</span><br v-else></span><br v-else></li>
+        <li class="m-1"><span v-if="user.email !== null"><span v-if="user.email.trim().length > 0" :style="user.email.trim().length <= 50 ? { color: 'white' } : { color: 'red' }">{{user.email.trim().length}}/50</span><br v-else></span><br v-else></li>
+        <li class="m-1"><span v-if="newPassword !== null"><span v-if="newPassword.match(/\s/g)" style="color: red;">Whitespace <br>not allowed</span><span v-else-if="newPassword.trim().length > 0" :style="newPassword.trim().length <= 14 && newPassword.trim().length >= 8 ? { color: 'white' } : { color: 'red' }">{{newPassword.trim().length}} (8-14)</span><br v-else></span><br v-else></li>
         <li class="m-1"><br></li>
       </ul>
     </div>
@@ -73,7 +102,7 @@ const checkInputInvalid = () => {
     <button 
     :disabled="checkInputInvalid()"
     :style="!checkInputInvalid() ? { color: 'white' } : { color: 'transparent' }"
-    @click="$emit('callCreateUser', newUser)"
+    @click="if(checkConfirmPassword()) $emit('callCreateUser', newUser);"
     class="font-semibold my-1 mt-2 bg-black text-white rounded text-l disabled:bg-transparent hover:bg-gray-600 px-4 transition-color duration-200 delay-200">
       Post
     </button>
@@ -84,7 +113,7 @@ const checkInputInvalid = () => {
 <style scoped>
 .columnA {
   float: left;
-  width: 160px;
+  width: 170px;
 }
 .columnB {
   float: left;
@@ -92,11 +121,25 @@ const checkInputInvalid = () => {
 }
 .columnC {
   float: left;
-  width: 100px;
+  width: 50px;
 }
+.columnD {
+  float: left;
+  width: 120px;
+}
+/* .columnE {
+  float: left;
+  width: 120px;
+} */
 .input {
   width: 260px;
   border-radius: 6px;
 }
-
+#hide{
+  /* display: none; */
+  cursor: pointer;
+}
+#show{
+  cursor: pointer;
+}
 </style>
