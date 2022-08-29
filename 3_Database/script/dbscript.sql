@@ -76,15 +76,14 @@ insert into `event`(`bookingName`,`bookingEmail`,`eventCategory_id`,`eventStartT
 ('สมเกียรติ ขยันเรียน กลุ่ม TT-4','somkiat.kay@kmutt.ac.th',3,'2022-05-23 9:30:00',15,null);
 
 -- insert to user --
-INSERT INTO `user`(`name`,`email`,`password`,`role`) VALUES 
-('OASIP ADMIN','oasip.admin@kmutt.ac.th','$argon2i$v=19$m=12,t=3,p=1$MnhsOTVoc2p1bXMwMDAwMA$wi9TNxjx7eVIeyyvLrxMOQ','admin'),
-('Somchai Jaidee','somchai.jai@kmutt.ac.th','$argon2i$v=19$m=12,t=3,p=1$dWJscDloanA3enMwMDAwMA$LKoX31LeYm1h+t5oOyB5ww','lecturer'),
-('Komkrid Rakdee','komkrid.rak@mail.kmutt.ac.th','$argon2i$v=19$m=12,t=3,p=1$bnYxNDY2aDVzdTAwMDAwMA$1pURRWXxJWX/UU9PGh3rcQ','student');
+-- INSERT INTO `user`(`name`,`email`,`password`,`role`) VALUES 
+-- ('OASIP ADMIN','oasip.admin@kmutt.ac.th','$argon2id$v=19$m=2048,t=3,p=1$WGRPTHJCbDFWSzFLak9pVA$bfMLZHA/SxxuZuTaYeDPHA','admin'),
+-- ('Somchai Jaidee','somchai.jai@kmutt.ac.th','$argon2id$v=19$m=2048,t=3,p=1$WGRPTHJCbDFWSzFLak9pVA$JXryPmIWlNdK/u8kQ31xoA','lecturer'),
+-- ('Komkrid Rakdee','komkrid.rak@mail.kmutt.ac.th','$argon2id$v=19$m=2048,t=3,p=1$WGRPTHJCbDFWSzFLak9pVA$ARf6/LTFJfnUnsJs/K0MpA','student');
 
--- ----------------------- --
--- create user 'dbconn'@'%' identified by 'int221';
--- grant all privileges on *.* TO 'dbconn'@'%';
--- flush privileges;
+create user 'dbconn'@'%' identified by 'int221';
+grant all privileges on *.* TO 'dbconn'@'%';
+flush privileges;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

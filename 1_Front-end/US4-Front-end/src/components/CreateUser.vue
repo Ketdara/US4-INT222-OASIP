@@ -88,7 +88,10 @@ const toggleShowPassword = () => {
       <ul>
         <li class="m-1"><br></li>
         <li class="m-1"><br></li>
-        <li class="m-2"><i id="show"><img :src="isShowPassword ? '/us4/src/assets/eye.png' : '/us4/src/assets/hidden.png'"  width="20" @click="toggleShowPassword()"></i></li>
+        <li v-if="isShowPassword" class="m-2"><i id="show"><img src="../assets/eye.png"  width="20" @click="toggleShowPassword()"></i></li>
+        <li v-else class="m-2"><i id="show"><img src="../assets/hidden.png"  width="20" @click="toggleShowPassword()"></i></li>
+        <!-- NOTE: top ones for dev, bottom ones for live -->
+        <!-- <li class="m-2"><i id="show"><img :src="isShowPassword ? '/us4/src/assets/eye.png' : '/us4/src/assets/hidden.png'"  width="20" @click="toggleShowPassword()"></i></li> -->
       </ul>
     </div>
     <div class="columnD text-white">

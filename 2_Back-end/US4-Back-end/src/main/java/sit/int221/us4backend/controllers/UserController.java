@@ -10,7 +10,7 @@ import sit.int221.us4backend.dtos.UserPartialDTO;
 import sit.int221.us4backend.dtos.UserWithValidateDTO;
 import sit.int221.us4backend.services.UserService;
 
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+//@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
