@@ -1,6 +1,7 @@
 package sit.int221.us4backend.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import sit.int221.us4backend.dtos.CredentialsDTO;
 import sit.int221.us4backend.dtos.UserFullDTO;
 import sit.int221.us4backend.dtos.UserPartialDTO;
 import sit.int221.us4backend.dtos.UserWithValidateDTO;
@@ -24,6 +25,17 @@ public class UserValidator {
 
         StringBuilder stringBuilder = new StringBuilder();
         for (ConstraintViolation<UserWithValidateDTO> constraintViolation : violations) {
+            stringBuilder.append(constraintViolation.getMessage());
+        }
+        return stringBuilder.toString();
+    }
+
+    public String credentialsAnnotationValidate(CredentialsDTO userCredentials) {
+        Set<ConstraintViolation<CredentialsDTO>> violations = validator.validate(userCredentials);
+        if(violations.isEmpty()) return "";
+
+        StringBuilder stringBuilder = new StringBuilder();
+        for (ConstraintViolation<CredentialsDTO> constraintViolation : violations) {
             stringBuilder.append(constraintViolation.getMessage());
         }
         return stringBuilder.toString();

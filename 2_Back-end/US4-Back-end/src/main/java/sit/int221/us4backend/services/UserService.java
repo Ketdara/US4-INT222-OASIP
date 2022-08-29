@@ -111,16 +111,33 @@ public class UserService {
         if(violationString.length() > 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Input not valid; " + violationString);
     }
 
-    public void authenticateCredentials(String email, String password) {
-        try {
-            User DBUser = userRepository.findByEmail(email.trim());
+    public void authenticateCredentials(CredentialsDTO userCredentials) {
+        trimCredentials(userCredentials);
+        credentialsValidate(userCredentials);
 
-            if(!argon2Encoder.matches(password.trim(), DBUser.getPassword())) {
+        try {
+            User user = userRepository.findByEmail(userCredentials.getEmail());
+
+            if(!argon2Encoder.matches(userCredentials.getPassword(), user.getPassword())) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password incorrect.");
             }
 
         }catch(NullPointerException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + email.trim() + " not found or does not exist.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + userCredentials.getEmail() + " not found or does not exist.");
         }
+    }
+
+    private void credentialsValidate(CredentialsDTO userCredentials) {
+        StringBuilder violationStringBuilder = new StringBuilder();
+        violationStringBuilder.append(userValidator.credentialsAnnotationValidate(userCredentials));
+
+        String violationString = violationStringBuilder.toString();
+        if(violationString.length() > 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Input not valid; " + violationString);
+    }
+
+    private CredentialsDTO trimCredentials(CredentialsDTO userCredentials) {
+        if(userCredentials.getEmail() != null) userCredentials.setEmail(userCredentials.getEmail().trim());
+        if(userCredentials.getPassword() != null) userCredentials.setPassword(userCredentials.getPassword().trim());
+        return userCredentials;
     }
 }

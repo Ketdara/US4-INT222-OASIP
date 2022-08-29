@@ -75,7 +75,8 @@ var postUI = ref({
   name: null,
   email: null,
   role: null,
-  password: null
+  password: null,
+  confirmPassword: null
 })
 
 const resetPostUI = () => {

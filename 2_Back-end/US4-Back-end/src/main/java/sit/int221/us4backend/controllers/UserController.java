@@ -47,6 +47,6 @@ public class UserController {
 
     @PostMapping("/match")
     public void authenticateUser(@RequestBody CredentialsDTO userCredentials) {
-        userService.authenticateCredentials(userCredentials.getEmail(), userCredentials.getPassword());
+        userService.authenticateCredentials(userCredentials);
     }
 }
