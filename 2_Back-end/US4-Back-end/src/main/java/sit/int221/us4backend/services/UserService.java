@@ -6,12 +6,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.*;
 import sit.int221.us4backend.entities.User;
+import sit.int221.us4backend.model.JwtResponse;
 import sit.int221.us4backend.repositories.UserRepository;
+import sit.int221.us4backend.utils.JwtTokenUtil;
 import sit.int221.us4backend.utils.ListMapper;
 import sit.int221.us4backend.utils.UserValidator;
 
@@ -33,6 +37,8 @@ public class UserService {
     private UserValidator userValidator;
     @Autowired
     private Argon2PasswordEncoder argon2Encoder;
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
 
     private Sort sort = Sort.by("name").ascending();
 
@@ -137,7 +143,25 @@ public class UserService {
 
     private CredentialsDTO trimCredentials(CredentialsDTO userCredentials) {
         if(userCredentials.getEmail() != null) userCredentials.setEmail(userCredentials.getEmail().trim());
-        if(userCredentials.getPassword() != null) userCredentials.setPassword(userCredentials.getPassword().trim());
         return userCredentials;
+    }
+
+    public ResponseEntity<?> loginCredentials(CredentialsDTO userCredentials) {
+        trimCredentials(userCredentials);
+        credentialsValidate(userCredentials);
+
+        try {
+            User user = userRepository.findByEmail(userCredentials.getEmail());
+
+            if(!argon2Encoder.matches(userCredentials.getPassword(), user.getPassword())) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password incorrect.");
+            }
+
+        }catch(NullPointerException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + userCredentials.getEmail() + " not found or does not exist.");
+        }
+
+        final String token = jwtTokenUtil.generateToken(userCredentials.getEmail());
+        return ResponseEntity.ok(new JwtResponse(token));
     }
 }

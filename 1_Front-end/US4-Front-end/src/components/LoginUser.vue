@@ -6,11 +6,6 @@ const credentials = ref({
   email: null,
   password: null
 })
-
-const a = (b) => {
-  console.log(b);
-}
-
 </script>
  
 <template>

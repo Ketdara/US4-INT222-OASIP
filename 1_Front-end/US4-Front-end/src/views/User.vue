@@ -6,6 +6,7 @@ import ViewUserDetails from '../components/ViewUserDetails.vue';
 import CreateUser from '../components/CreateUser.vue';
 import EditUser from '../components/EditUser.vue';
 import LoginUser from '../components/LoginUser.vue';
+import MatchUser from '../components/MatchUser.vue';
 
 const user = ref({});
 const userList = ref([]);
@@ -91,14 +92,30 @@ const toggleEdit = () => {
   isEditing.value = !isEditing.value;
 }
 
-const isModalOpen = ref(false);
-const toggleModal = () => {
-  isModalOpen.value = !isModalOpen.value;
+const isLoginOpen = ref(false);
+const isMatchOpen = ref(false);
+
+const toggleLogin = () => {
+  isLoginOpen.value = !isLoginOpen.value;
 }
 
+const toggleMatch = () => {
+  isMatchOpen.value = !isMatchOpen.value;
+}
+
+const match = async (credentials) => {
+  if(await userAPI.matchUser(credentials)) {
+    alert("Match Successful");
+  }
+}
+
+const JwtToken = ref(null)
+
 const login = async (credentials) => {
-  if(await userAPI.loginUser(credentials)) {
+  JwtToken.value = await userAPI.loginUser(credentials);
+  if(JwtToken.value !== null) {
     alert("Login Successful");
+    console.log("Token: " + JwtToken.value);
   }
 }
 </script>
@@ -107,14 +124,21 @@ const login = async (credentials) => {
 <div class="pb-5">
   <div>
     <login-user
-      v-if="isModalOpen"
-      @toggleModal="toggleModal"
+      v-if="isLoginOpen"
+      @toggleModal="toggleLogin"
       @callLoginUser="login"/>
+  </div>
+  <div>
+    <match-user
+      v-if="isMatchOpen"
+      @toggleModal="toggleMatch"
+      @callMatchUser="match"/>
   </div>
   <div class="bg-black p-4 px-7 text-white">
     <h1 class="font-semibold text-2xl">OASIP</h1>
     <p class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
-    <button class="mr-10 font-semibold float-right" @click="toggleModal">Login</button>
+    <button class="mr-10 font-semibold float-right" @click="toggleLogin">Login</button>
+    <button class="mr-10 font-semibold float-right" @click="toggleMatch">Match</button>
       <!-- Login -->
 
   <!-- End-Login -->

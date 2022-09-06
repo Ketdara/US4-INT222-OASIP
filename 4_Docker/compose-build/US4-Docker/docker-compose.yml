@@ -13,7 +13,7 @@ services:
   us4-be:
     build: ../../../2_Back-end/US4-Back-end
     ports:
-      - 8080:8080
+      - 8443:8443
     depends_on:
       - us4-db
     restart: always
@@ -22,8 +22,9 @@ services:
       SPRING_DATASOURCE_USER: dbconn
       SPRING_DATASOURCE_NAME: us4db
       SPRING_DATASOURCE_URL: jdbc:mysql://us4-db:3306/us4db
-      SERVER_PORT: 8080
+      SERVER_PORT: 8443
       SERVER_ERROR_INCLUDE-MESSAGE: always
+      JWT_SECRET: javainuse
   us4-fe:
     build: ../../../1_Front-end/US4-Front-end
     ports:
@@ -35,5 +36,5 @@ services:
   us4-proxy:
     build: ../../../5_Reverse-proxy
     ports:
-      - 23306:80
+      - 23306:443
     restart: always

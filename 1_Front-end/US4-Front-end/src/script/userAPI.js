@@ -109,6 +109,32 @@ export const userAPI = {
   },
 
   loginUser: async function (user) {
+    const res = await fetch(import.meta.env.VITE_BASE_URL + 'users/login', { method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        email: user.email,
+        password: user.password
+      })
+    })
+
+    if(res.status === 200){
+      let tokenObj = await res.json();
+      console.log('[loginUser] Successful');
+      return tokenObj.token;
+    }
+    if(res.status === 400 || res.status === 401 || res.status === 404) {
+      res.json().then(promise => {
+        console.log('[loginUser] Error: ' + promise.message.replace(/; /g, '\n'));
+        alert(promise.message.replace(/; /g, '\n'));
+      });
+      return null;
+    }
+    console.log('[loginUser] Error: Unknown');
+    alert('Error occurred when login user');
+    return null;
+  },
+
+  matchUser: async function (user) {
     const res = await fetch(import.meta.env.VITE_BASE_URL + 'users/match', { method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -118,17 +144,17 @@ export const userAPI = {
     })
 
     if(res.status === 200){
-      console.log('[loginUser] Successful');
+      console.log('[matchUser] Successful');
       return true;
     }
     if(res.status === 400 || res.status === 401 || res.status === 404) {
       res.json().then(promise => {
-        console.log('[loginUser] Error: ' + promise.message.replace(/; /g, '\n'));
+        console.log('[matchUser] Error: ' + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
       });
       return false;
     }
-    console.log('[loginUser] Error: Unknown');
+    console.log('[matchUser] Error: Unknown');
     alert('Error occurred when login user');
     return false;
   }

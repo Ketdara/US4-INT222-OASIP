@@ -3,6 +3,7 @@ package sit.int221.us4backend.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.us4backend.dtos.CredentialsDTO;
 import sit.int221.us4backend.dtos.UserFullDTO;
@@ -48,5 +49,10 @@ public class UserController {
     @PostMapping("/match")
     public void authenticateUser(@RequestBody CredentialsDTO userCredentials) {
         userService.authenticateCredentials(userCredentials);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody CredentialsDTO userCredentials) {
+        return userService.loginCredentials(userCredentials);
     }
 }

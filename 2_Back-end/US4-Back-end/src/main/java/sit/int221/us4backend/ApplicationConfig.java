@@ -48,4 +48,7 @@ public class ApplicationConfig {
 
     @Bean
     public UserValidator userValidator() { return UserValidator.getInstance(); }
+
+    @Bean
+    public JwtTokenUtil jwtTokenUtil() { return JwtTokenUtil.getInstance(); }
 }

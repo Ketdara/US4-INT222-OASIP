@@ -18,11 +18,13 @@ C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\Us4BackEndApplication.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\dtos\UserFullDTO.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\services\EventService.java
+C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\model\JwtResponse.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\controllers\EventController.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\repositories\UserRepository.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\controllers\UserController.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\services\EventCategoryService.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\dtos\EventCategoryDTO.java
+C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\WebSecurityConfig.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\enums\Role.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\repositories\EventRepository.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\dtos\UserWithValidateDTO.java
@@ -32,3 +34,4 @@ C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\entities\User.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\validators\EnumRoleValidator.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\utils\EventValidator.java
+C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\utils\JwtTokenUtil.java

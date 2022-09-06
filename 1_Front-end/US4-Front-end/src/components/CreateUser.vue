@@ -98,7 +98,7 @@ const toggleShowPassword = () => {
       <ul>
         <li class="m-1"><span v-if="user.name !== null"><span v-if="user.name.trim().length > 0" :style="user.name.trim().length <= 100 ? { color: 'white' } : { color: 'red' }">{{user.name.trim().length}}/100</span><br v-else></span><br v-else></li>
         <li class="m-1"><span v-if="user.email !== null"><span v-if="user.email.trim().length > 0" :style="user.email.trim().length <= 50 ? { color: 'white' } : { color: 'red' }">{{user.email.trim().length}}/50</span><br v-else></span><br v-else></li>
-        <li class="m-1"><span v-if="user.password !== null"><span v-if="user.password.match(/\s/g)" style="color: red;">Whitespace <br>not allowed</span><span v-else-if="user.password.trim().length > 0" :style="user.password.trim().length <= 14 && user.password.trim().length >= 8 ? { color: 'white' } : { color: 'red' }">{{user.password.trim().length}} (8-14)</span><br v-else></span><br v-else></li>
+        <li class="m-1"><span v-if="user.password !== null"><span v-if="user.password.match(/\s/g)" style="color: red;">Whitespace <br>not allowed</span><span v-else-if="user.password.length > 0" :style="user.password.length <= 14 && user.password.length >= 8 ? { color: 'white' } : { color: 'red' }">{{user.password.length}} Characters<br>(must be 8-14)</span><br v-else></span><br v-else></li>
         <li class="m-1"><br></li>
       </ul>
     </div>
