@@ -7,22 +7,18 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.*;
 import sit.int221.us4backend.entities.User;
 import sit.int221.us4backend.model.JwtResponse;
+import sit.int221.us4backend.model.RefreshRequest;
 import sit.int221.us4backend.repositories.UserRepository;
 import sit.int221.us4backend.utils.JwtTokenUtil;
 import sit.int221.us4backend.utils.ListMapper;
 import sit.int221.us4backend.utils.UserValidator;
 
-import javax.transaction.Transaction;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -61,34 +57,34 @@ public class UserService {
         return modelMapper.map(user, UserFullDTO.class);
     }
 
-    public void postUserDTO(UserWithValidateDTO newUserDTO) {
-        trimUserField(newUserDTO);
-        callUserValidator(newUserDTO, false);
+    public void postUserDTO(UserPostDTO postUserDTO) {
+        trimPostField(postUserDTO);
+        postUserValidator(postUserDTO);
 
-        String hashedPassword = argon2Encoder.encode(newUserDTO.getPassword());
+        String hashedPassword = argon2Encoder.encode(postUserDTO.getPassword());
 
-        userRepository.createUser(newUserDTO.getName(), newUserDTO.getEmail(), newUserDTO.getRole(), hashedPassword);
+        userRepository.createUser(postUserDTO.getName(), postUserDTO.getEmail(), postUserDTO.getRole(), hashedPassword);
     }
 
-    public void putUserDTO(UserWithValidateDTO newUserDTO, Integer user_id) {
-        trimUserField(newUserDTO);
-        callUserValidator(newUserDTO, true);
+    public void putUserDTO(UserPutDTO putUserDTO, Integer user_id) {
+        trimPutField(putUserDTO);
+        putUserValidator(putUserDTO);
 
-        userRepository.updateUser(newUserDTO.getName(), newUserDTO.getEmail(), newUserDTO.getRole(), user_id);
+        userRepository.updateUser(putUserDTO.getName(), putUserDTO.getEmail(), putUserDTO.getRole(), user_id);
     }
 
-    private UserWithValidateDTO trimUserField(UserWithValidateDTO newUserDTO) {
+    private UserPostDTO trimPostField(UserPostDTO newUserDTO) {
         if(newUserDTO.getName() != null) newUserDTO.setName(newUserDTO.getName().trim());
         if(newUserDTO.getEmail() != null) newUserDTO.setEmail(newUserDTO.getEmail().trim());
         if(newUserDTO.getRole() != null) newUserDTO.setRole(newUserDTO.getRole().trim());
         return newUserDTO;
     }
 
-    private User mapUser(User oldUser, User newUser) {
-        oldUser.setName(newUser.getName());
-        oldUser.setEmail(newUser.getEmail());
-        oldUser.setRole(newUser.getRole());
-        return oldUser;
+    private UserPutDTO trimPutField(UserPutDTO newUserDTO) {
+        if(newUserDTO.getName() != null) newUserDTO.setName(newUserDTO.getName().trim());
+        if(newUserDTO.getEmail() != null) newUserDTO.setEmail(newUserDTO.getEmail().trim());
+        if(newUserDTO.getRole() != null) newUserDTO.setRole(newUserDTO.getRole().trim());
+        return newUserDTO;
     }
 
     public void deleteUserDTOById(Integer user_id) {
@@ -97,19 +93,39 @@ public class UserService {
         userRepository.deleteById(user_id);
     }
 
-    private void callUserValidator(UserWithValidateDTO newUserDTO, boolean isPut) {
+    private void postUserValidator(UserPostDTO postUserDTO) {
         StringBuilder violationStringBuilder = new StringBuilder();
-        violationStringBuilder.append(userValidator.annotationValidate(newUserDTO));
+        violationStringBuilder.append(userValidator.annotationValidate(postUserDTO));
 
-        if(newUserDTO.getName() != null || newUserDTO.getEmail() != null) {
+        if(postUserDTO.getName() != null || postUserDTO.getEmail() != null) {
             List<UserPartialDTO> userDTOs = getUserDTOsAsList();
 
-            if(newUserDTO.getName() != null) {
-                violationStringBuilder.append(userValidator.uniqueNameValidate(newUserDTO, userDTOs));
+            if(postUserDTO.getName() != null) {
+                violationStringBuilder.append(userValidator.uniqueNameValidate(postUserDTO.getName(), postUserDTO.getId(), userDTOs));
             }
 
-            if(newUserDTO.getEmail() != null) {
-                violationStringBuilder.append(userValidator.uniqueEmailValidate(newUserDTO, userDTOs));
+            if(postUserDTO.getEmail() != null) {
+                violationStringBuilder.append(userValidator.uniqueEmailValidate(postUserDTO.getEmail(), postUserDTO.getId(), userDTOs));
+            }
+        }
+
+        String violationString = violationStringBuilder.toString();
+        if(violationString.length() > 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Input not valid; " + violationString);
+    }
+
+    private void putUserValidator(UserPutDTO putUserDTO) {
+        StringBuilder violationStringBuilder = new StringBuilder();
+        violationStringBuilder.append(userValidator.annotationValidate(putUserDTO));
+
+        if(putUserDTO.getName() != null || putUserDTO.getEmail() != null) {
+            List<UserPartialDTO> userDTOs = getUserDTOsAsList();
+
+            if(putUserDTO.getName() != null) {
+                violationStringBuilder.append(userValidator.uniqueNameValidate(putUserDTO.getName(), putUserDTO.getId(), userDTOs));
+            }
+
+            if(putUserDTO.getEmail() != null) {
+                violationStringBuilder.append(userValidator.uniqueEmailValidate(putUserDTO.getEmail(), putUserDTO.getId(), userDTOs));
             }
         }
 
@@ -135,7 +151,7 @@ public class UserService {
 
     private void credentialsValidate(CredentialsDTO userCredentials) {
         StringBuilder violationStringBuilder = new StringBuilder();
-        violationStringBuilder.append(userValidator.credentialsAnnotationValidate(userCredentials));
+        violationStringBuilder.append(userValidator.annotationValidate(userCredentials));
 
         String violationString = violationStringBuilder.toString();
         if(violationString.length() > 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Input not valid; " + violationString);
@@ -161,7 +177,14 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + userCredentials.getEmail() + " not found or does not exist.");
         }
 
-        final String token = jwtTokenUtil.generateToken(userCredentials.getEmail());
-        return ResponseEntity.ok(new JwtResponse(token));
+        final String jwtToken = jwtTokenUtil.generateToken(userCredentials.getEmail());
+        final String refreshToken = jwtTokenUtil.generateRefreshToken(userCredentials.getEmail());
+        return ResponseEntity.ok(new JwtResponse(jwtToken, refreshToken));
+    }
+
+    public ResponseEntity<?> regenerateTokens(RefreshRequest request) {
+        final String jwtToken = jwtTokenUtil.regenerateToken(request.getRefreshToken());
+        final String refreshToken = jwtTokenUtil.regenerateRefreshToken(request.getRefreshToken());
+        return ResponseEntity.ok(new JwtResponse(jwtToken, refreshToken));
     }
 }

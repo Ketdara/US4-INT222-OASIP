@@ -7,7 +7,7 @@ import sit.int221.us4backend.services.EventCategoryService;
 
 import java.util.List;
 
-//@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/event-categories")
 public class EventCategoryController {

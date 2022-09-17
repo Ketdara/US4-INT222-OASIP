@@ -30,7 +30,6 @@ const updateUsers = async () => {
 onBeforeMount(async () => {
   selectedPageNum.value = 1
   updateUsers();
-  await getUsersAsPage(1);
 })
 
 const getUsersAsPage = async (pageNum) => {
@@ -109,15 +108,31 @@ const match = async (credentials) => {
   }
 }
 
-const JwtToken = ref(null)
-
 const login = async (credentials) => {
-  JwtToken.value = await userAPI.loginUser(credentials);
-  if(JwtToken.value !== null) {
+  if(await userAPI.loginUser(credentials)) {
     alert("Login Successful");
-    console.log("Token: " + JwtToken.value);
+    updateUsers();
+    toggleLogin();
   }
 }
+
+const refresh = async () => {
+  if(await userAPI.refreshToken()) {
+    alert("Refresh Successful");
+    updateUsers();
+  }
+}
+
+const logout = () => {
+  if(confirm("Are you sure you want to confirm logout?") === true){
+    localStorage.clear();
+    alert("Logout Successful");
+
+    userList.value = null;
+    maxPageNum.value = 1;
+  }
+}
+
 </script>
 
 <template>
@@ -137,7 +152,9 @@ const login = async (credentials) => {
   <div class="bg-black p-4 px-7 text-white">
     <h1 class="font-semibold text-2xl">OASIP</h1>
     <p class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
+    <button class="mr-10 font-semibold float-right" @click="refresh">Refresh</button>
     <button class="mr-10 font-semibold float-right" @click="toggleLogin">Login</button>
+    <button class="mr-10 font-semibold float-right" @click="logout">Logout</button>
     <button class="mr-10 font-semibold float-right" @click="toggleMatch">Match</button>
       <!-- Login -->
 
@@ -148,12 +165,14 @@ const login = async (credentials) => {
       <!-- User List -->
       <div class="bg-neutral-100 rounded-lg col-span-1 row-span-2 p-3"> 
         <h2 class="font-semibold">User List : </h2>
-        <div v-if="userList.length > 0">
-          <button v-for="page in maxPageNum" :key="page" @click="getUsersAsPage(page)" class="bg-black text-white rounded text-l active:bg-gray-600 py px-2 mx-1 mt-1 transition-color duration-000 delay-000">{{ page }}</button>
-          <view-user-list 
-            :userList='userList'
-            @callShowUser="getUserById"
-          />
+        <div v-if="userList !== null && userList !== undefined">
+          <div v-if="userList.length > 0">
+            <button v-for="page in maxPageNum" :key="page" @click="getUsersAsPage(page)" class="bg-black text-white rounded text-l active:bg-gray-600 py px-2 mx-1 mt-1 transition-color duration-000 delay-000">{{ page }}</button>
+            <view-user-list 
+              :userList='userList'
+              @callShowUser="getUserById"
+            />
+          </div>
         </div>
         <div class="m-5 text-l" v-else>
           <div>No user.</div>

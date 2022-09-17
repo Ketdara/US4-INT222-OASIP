@@ -1,8 +1,11 @@
 export const userAPI = {
+
   getUsersAsPage: async function (pageNum) {
     var res = null;
     try{
-      res = await fetch(import.meta.env.VITE_BASE_URL + `users?page=${pageNum}`);
+      res = await fetch(import.meta.env.VITE_BASE_URL + `users?page=${pageNum}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` }
+      });
     }catch(err) {
       alert('Error: Could not fetch users');
       return null;
@@ -13,22 +16,34 @@ export const userAPI = {
       console.log(`[getUsersAsPage: ${pageNum}] Successful`);
       return userPage;
     }
+    if(res.status === 400 || res.status === 401 || res.status === 404) {
+      res.json().then(promise => {
+        console.log(`[getUsersAsPage: ${pageNum}] Error: ` + promise.message.replace(/; /g, '\n'));
+        alert(promise.message.replace(/; /g, '\n'));
+      });
+      return false;
+    }
     console.log(`[getUsersAsPage: ${pageNum}] Error: Unknown`);
     alert('Error occurred when getting users');
     return null;
   },
 
   getUserById: async function (id) {
-    const res = await fetch(import.meta.env.VITE_BASE_URL + `users/${id}`);
+    const res = await fetch(import.meta.env.VITE_BASE_URL + `users/${id}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` }
+    });
+
     if(res.status === 200) {
       let user = await res.json();
       console.log('[getUserById] Successful');
       return user;
     }
-    if(res.status === 404){
-      console.log('[getUserById] Error: User not found or does not exist');
-      alert('Error occurred: User not found or does not exist');
-      return null;
+    if(res.status === 400 || res.status === 401 || res.status === 404) {
+      res.json().then(promise => {
+        console.log('[getUserById] Error: ' + promise.message.replace(/; /g, '\n'));
+        alert(promise.message.replace(/; /g, '\n'));
+      });
+      return false;
     }
     console.log('[getUserById] Error: Unknown');
     alert('Error occurred when getting user');
@@ -37,6 +52,7 @@ export const userAPI = {
 
   postUser: async function (user) {
     const res = await fetch(import.meta.env.VITE_BASE_URL + 'users', { method: 'POST',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` },
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         name: user.name,
@@ -50,7 +66,7 @@ export const userAPI = {
       console.log('[postUser] Successful');
       return true;
     }
-    if(res.status === 400) {
+    if(res.status === 400 || res.status === 401 || res.status === 404) {
       res.json().then(promise => {
         console.log('[postUser] Error: ' + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
@@ -64,6 +80,7 @@ export const userAPI = {
 
   putUser: async function (user) {
     const res = await fetch(import.meta.env.VITE_BASE_URL + `users/${user.id}`, { method: 'PUT',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` },
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         id: user.id,
@@ -77,7 +94,7 @@ export const userAPI = {
       console.log('[putUser] Successful');
       return true;
     }
-    if(res.status === 400) {
+    if(res.status === 400 || res.status === 401 || res.status === 404) {
       res.json().then(promise => {
         console.log('[putUser] Error: ' + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
@@ -90,13 +107,15 @@ export const userAPI = {
   },
 
   deleteUserById: async function (id) {
-    const res = await fetch(import.meta.env.VITE_BASE_URL + `users/${id}`, {method: 'DELETE'});
+    const res = await fetch(import.meta.env.VITE_BASE_URL + `users/${id}`, { method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` }
+    });
 
     if(res.status === 200) {
       console.log('[deleteUserById] Successful');
       return true;
     }
-    if(res.status === 404){
+    if(res.status === 400 || res.status === 401 || res.status === 404){
       res.json().then(promise => {
         console.log('[deleteUserById] Error: User not found or does not exist');
         alert('Error occurred: User not found or does not exist');
@@ -118,20 +137,23 @@ export const userAPI = {
     })
 
     if(res.status === 200){
-      let tokenObj = await res.json();
+      let tokens = await res.json();
       console.log('[loginUser] Successful');
-      return tokenObj.token;
+
+      localStorage.setItem('jwtToken', tokens.jwtToken);
+      localStorage.setItem('refreshToken', tokens.refreshToken);
+      return true;
     }
     if(res.status === 400 || res.status === 401 || res.status === 404) {
       res.json().then(promise => {
         console.log('[loginUser] Error: ' + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
       });
-      return null;
+      return false;
     }
     console.log('[loginUser] Error: Unknown');
     alert('Error occurred when login user');
-    return null;
+    return false;
   },
 
   matchUser: async function (user) {
@@ -157,5 +179,34 @@ export const userAPI = {
     console.log('[matchUser] Error: Unknown');
     alert('Error occurred when login user');
     return false;
+  },
+
+  refreshToken: async function () {
+    const res = await fetch(import.meta.env.VITE_BASE_URL + 'users/refresh', { method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        refreshToken: localStorage.getItem('refreshToken')
+      })
+    })
+
+    if(res.status === 200){
+      let tokens = await res.json();
+      console.log('[refreshToken] Successful');
+
+      localStorage.setItem('jwtToken', tokens.jwtToken);
+      localStorage.setItem('refreshToken', tokens.refreshToken);
+      return true;
+    }
+    if(res.status === 400 || res.status === 401 || res.status === 404) {
+      res.json().then(promise => {
+        console.log('[refreshToken] Error: ' + promise.message.replace(/; /g, '\n'));
+        alert(promise.message.replace(/; /g, '\n'));
+      });
+      return false;
+    }
+    console.log('[refreshToken] Error: Unknown');
+    alert('Error occurred when login user');
+    return false;
   }
+
 };

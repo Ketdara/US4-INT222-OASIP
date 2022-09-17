@@ -15,7 +15,7 @@ import javax.validation.constraints.Size;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserWithValidateDTO {
+public class UserPostDTO {
     private Integer id;
 
     @NotBlank(message = "User Name cannot be null; ")
