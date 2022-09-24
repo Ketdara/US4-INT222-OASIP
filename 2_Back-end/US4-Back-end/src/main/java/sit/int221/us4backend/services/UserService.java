@@ -19,6 +19,7 @@ import sit.int221.us4backend.utils.JwtTokenUtil;
 import sit.int221.us4backend.utils.ListMapper;
 import sit.int221.us4backend.utils.UserValidator;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Service
@@ -52,7 +53,7 @@ public class UserService {
 
     public UserFullDTO getUserDTOById(Integer user_id) {
         User user = userRepository.findById(user_id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + user_id + " not found or does not exist."));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + user_id + " not found or does not exist"));
 
         return modelMapper.map(user, UserFullDTO.class);
     }
@@ -89,7 +90,7 @@ public class UserService {
 
     public void deleteUserDTOById(Integer user_id) {
         userRepository.findById(user_id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + user_id + " not found or does not exist."));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + user_id + " not found or does not exist"));
         userRepository.deleteById(user_id);
     }
 
@@ -141,11 +142,11 @@ public class UserService {
             User user = userRepository.findByEmail(userCredentials.getEmail());
 
             if(!argon2Encoder.matches(userCredentials.getPassword(), user.getPassword())) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password incorrect.");
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password incorrect");
             }
 
         }catch(NullPointerException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + userCredentials.getEmail() + " not found or does not exist.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + userCredentials.getEmail() + " not found or does not exist");
         }
     }
 
@@ -170,11 +171,11 @@ public class UserService {
             User user = userRepository.findByEmail(userCredentials.getEmail());
 
             if(!argon2Encoder.matches(userCredentials.getPassword(), user.getPassword())) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password incorrect.");
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password incorrect");
             }
 
         }catch(NullPointerException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + userCredentials.getEmail() + " not found or does not exist.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + userCredentials.getEmail() + " not found or does not exist");
         }
 
         final String jwtToken = jwtTokenUtil.generateToken(userCredentials.getEmail());
@@ -187,4 +188,13 @@ public class UserService {
         final String refreshToken = jwtTokenUtil.regenerateRefreshToken(request.getRefreshToken());
         return ResponseEntity.ok(new JwtResponse(jwtToken, refreshToken));
     }
+
+    public String getRoleFromEmail(String email) {
+        try {
+            return userRepository.findByEmail(email).getRole();
+        }catch (NullPointerException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email from token " + email + " not found or does not exist");
+        }
+    }
+
 }

@@ -11,9 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.model.RefreshRequest;
@@ -42,28 +39,22 @@ public class JwtTokenUtil implements Serializable {
     @Value("${jwt.refreshExpirationInMs}")
     private int refreshExpirationInMs;
 
+    public String getEmailFromRefreshToken(String token) {
+        return getClaimFromRefreshToken(token, Claims::getSubject);
+    }
+
+    public <T> T getClaimFromRefreshToken(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = Jwts.parser().setSigningKey(refreshSecret).parseClaimsJws(token).getBody();
+        return claimsResolver.apply(claims);
+    }
+
     public String getEmailFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
 
-    public Date getExpirationDateFromToken(String token) {
-        return getClaimFromToken(token, Claims::getExpiration);
-    }
-
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = getAllClaimsFromToken(token);
+        final Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
         return claimsResolver.apply(claims);
-    }
-
-    //for retrieveing any information from token we will need the secret key
-    private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser().setSigningKey(refreshSecret).parseClaimsJws(token).getBody();
-    }
-
-    //check if the token has expired
-    private Boolean isTokenExpired(String token) {
-        final Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date());
     }
 
     public String generateToken(String email) {
@@ -132,10 +123,14 @@ public class JwtTokenUtil implements Serializable {
     }
 
     public String regenerateToken(String refreshToken) {
-        return generateToken(getEmailFromToken(refreshToken));
+        return generateToken(getEmailFromRefreshToken(refreshToken));
     }
     public String regenerateRefreshToken(String refreshToken) {
-        return generateToken(getEmailFromToken(refreshToken));
+        return generateToken(getEmailFromRefreshToken(refreshToken));
+    }
+
+    public String getEmailFromHeader(HttpServletRequest request) {
+        return getEmailFromToken(extractJwtFromHeader(request));
     }
 
 }

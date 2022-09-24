@@ -20,4 +20,16 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     Page<Event> findEventPastAll(String now, Pageable pageable);
 
     Page<Event> findAllByEventStartTimeBetween(String minDate, String maxDate, Pageable pageable);
+
+    Page<Event> findAllByBookingEmail(String email, Pageable pageable);
+
+    Page<Event> findAllByEventCategory_IdAndBookingEmail(Integer categoryId, String email, Pageable pageable);
+
+    @Query(value = "select e from Event e where FUNCTION('ADDTIME', e.eventStartTime, FUNCTION('SEC_TO_TIME', e.eventDuration * 60)) > ?1 and e.bookingEmail = ?2")
+    Page<Event> findEventUpcomingAllAndEmail(String minTime, String email, Pageable pageable);
+
+    @Query(value = "select e from Event e where FUNCTION('ADDTIME', e.eventStartTime, FUNCTION('SEC_TO_TIME', e.eventDuration * 60)) <= ?1 and e.bookingEmail = ?2")
+    Page<Event> findEventPastAllAndEmail(String now, String email, Pageable pageable);
+
+    Page<Event> findAllByEventStartTimeBetweenAndBookingEmail(String minDate, String maxDate, String email, Pageable pageable);
 }

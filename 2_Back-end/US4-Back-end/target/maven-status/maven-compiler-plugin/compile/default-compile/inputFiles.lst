@@ -1,9 +1,12 @@
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\ApplicationConfig.java
+C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\model\RefreshRequest.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\services\UserService.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\constraints\PastString.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\dtos\UserPartialDTO.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\dtos\CredentialsDTO.java
+C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\dtos\UserPutDTO.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\repositories\EventCategoryRepository.java
+C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\dtos\UserPostDTO.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\utils\ListMapper.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\validators\DurationNotNullValidator.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\utils\UserValidator.java
@@ -27,7 +30,6 @@ C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\WebSecurityConfig.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\enums\Role.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\repositories\EventRepository.java
-C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\dtos\UserWithValidateDTO.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\constraints\EnumRole.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\controllers\EventCategoryController.java
 C:\int222\OASIP-US-4\2_Back-end\US4-Back-end\src\main\java\sit\int221\us4backend\dtos\EventPartialDTO.java
