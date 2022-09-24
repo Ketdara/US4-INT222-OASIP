@@ -14,6 +14,7 @@ import sit.int221.us4backend.dtos.*;
 import sit.int221.us4backend.entities.User;
 import sit.int221.us4backend.model.JwtResponse;
 import sit.int221.us4backend.model.RefreshRequest;
+import sit.int221.us4backend.model.loginResponse;
 import sit.int221.us4backend.repositories.UserRepository;
 import sit.int221.us4backend.utils.JwtTokenUtil;
 import sit.int221.us4backend.utils.ListMapper;
@@ -166,9 +167,10 @@ public class UserService {
     public ResponseEntity<?> loginCredentials(CredentialsDTO userCredentials) {
         trimCredentials(userCredentials);
         credentialsValidate(userCredentials);
+        User user;
 
         try {
-            User user = userRepository.findByEmail(userCredentials.getEmail());
+            user = userRepository.findByEmail(userCredentials.getEmail());
 
             if(!argon2Encoder.matches(userCredentials.getPassword(), user.getPassword())) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password incorrect");
@@ -180,7 +182,7 @@ public class UserService {
 
         final String jwtToken = jwtTokenUtil.generateToken(userCredentials.getEmail());
         final String refreshToken = jwtTokenUtil.generateRefreshToken(userCredentials.getEmail());
-        return ResponseEntity.ok(new JwtResponse(jwtToken, refreshToken));
+        return ResponseEntity.ok(new loginResponse(user.getName(), user.getEmail(), user.getRole(), jwtToken, refreshToken));
     }
 
     public ResponseEntity<?> regenerateTokens(RefreshRequest request) {
