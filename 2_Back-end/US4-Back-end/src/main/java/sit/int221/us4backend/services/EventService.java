@@ -11,7 +11,6 @@ import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.EventTimeframeDTO;
 import sit.int221.us4backend.dtos.EventWithValidateDTO;
 import sit.int221.us4backend.entities.Event;
-import sit.int221.us4backend.entities.User;
 import sit.int221.us4backend.repositories.EventRepository;
 import sit.int221.us4backend.dtos.EventPartialDTO;
 import sit.int221.us4backend.repositories.UserRepository;

@@ -46,7 +46,9 @@ export const eventAPI = {
 
     var res = null;
     try{
-      res = await fetch(import.meta.env.VITE_BASE_URL + `events${this.URLParam}`);
+      res = await fetch(import.meta.env.VITE_BASE_URL + `events${this.URLParam}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` }
+      });
     }catch(err) {
       alert('Error: Could not fetch events');
       return null;
@@ -60,23 +62,34 @@ export const eventAPI = {
       console.log(`[getEventsAsPage: ${pageNum}] Successful`);
       return eventPage;
     }
+    if(res.status === 401){
+      res.json().then(promise => {
+        console.log('[getEventsAsPage: ${pageNum}] Error: ' + promise.message.replace(/; /g, '\n'));
+        alert(promise.message.replace(/; /g, '\n'));
+      });
+      return null;
+    }
     console.log(`[getEventsAsPage: ${pageNum}] Error: Unknown`);
     alert('Error occurred when getting events');
     return null;
   },
 
   getEventById: async function (id) {
-    const res = await fetch(import.meta.env.VITE_BASE_URL + `events/${id}`);
+    const res = await fetch(import.meta.env.VITE_BASE_URL + `events/${id}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` }
+    });
     if(res.status === 200) {
       let event = await res.json();
       this.UTCToLocal(event);
       console.log('[getEventById] Successful');
       return event;
     }
-    if(res.status === 404){
-      console.log('[getEventById] Error: Event not found or does not exist');
-      alert('Error occurred: Event not found or does not exist');
-      return null;
+    if(res.status === 401 || res.status === 403 || res.status === 404){
+      res.json().then(promise => {
+        console.log('[getEventById] Error: ' + promise.message.replace(/; /g, '\n'));
+        alert(promise.message.replace(/; /g, '\n'));
+      });
+      return false;
     }
     console.log('[getEventById] Error: Unknown');
     alert('Error occurred when getting event');
@@ -85,9 +98,8 @@ export const eventAPI = {
 
   postEvent: async function (event) {
     this.localToUTC(event);
-    // console.log(event);
     const res = await fetch(import.meta.env.VITE_BASE_URL + 'events', { method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, 'content-type': 'application/json' },
       body: JSON.stringify({
         bookingName: event.bookingName,
         bookingEmail: event.bookingEmail,
@@ -101,7 +113,7 @@ export const eventAPI = {
       console.log('[postEvent] Successful');
       return true;
     }
-    if(res.status === 400) {
+    if(res.status === 401 || res.status === 400) {
       res.json().then(promise => {
         console.log('[postEvent] Error: ' + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
@@ -117,7 +129,7 @@ export const eventAPI = {
     this.localToUTC(event);
     // console.log(event);
     const res = await fetch(import.meta.env.VITE_BASE_URL + `events/${event.id}`, { method: 'PUT',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, 'content-type': 'application/json' },
       body: JSON.stringify({
         id: event.id,
         bookingName: event.bookingName,
@@ -132,7 +144,7 @@ export const eventAPI = {
       console.log('[putEvent] Successful');
       return true;
     }
-    if(res.status === 400) {
+    if(res.status === 400 || res.status === 401 || res.status === 403) {
       res.json().then(promise => {
         console.log('[putEvent] Error: ' + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
@@ -145,16 +157,18 @@ export const eventAPI = {
   },
 
   deleteEventById: async function (id) {
-    const res = await fetch(import.meta.env.VITE_BASE_URL + `events/${id}`, {method: 'DELETE'});
+    const res = await fetch(import.meta.env.VITE_BASE_URL + `events/${id}`, {method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` }
+    });
 
     if(res.status === 200) {
       console.log('[deleteEventById] Successful');
       return true;
     }
-    if(res.status === 404){
+    if(res.status === 401 || res.status === 403 || res.status === 404){
       res.json().then(promise => {
-        console.log('[deleteEventById] Error: Event not found or does not exist');
-        alert('Error occurred: Event not found or does not exist');
+        console.log('[deleteEvent] Error: ' + promise.message.replace(/; /g, '\n'));
+        alert(promise.message.replace(/; /g, '\n'));
       });
       return false;
     }

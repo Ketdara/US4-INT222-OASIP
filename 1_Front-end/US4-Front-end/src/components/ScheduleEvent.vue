@@ -20,6 +20,14 @@ const props = defineProps({
       eventStartTime: null,
       eventNotes: null
     }
+  },
+  currentRole: {
+    type: String,
+    default: null
+  },
+  currentEmail: {
+    type: String,
+    default: null
   }
 })
 
@@ -32,7 +40,7 @@ const newEventCategory = computed(() => {
 const newEvent = computed(() => {
   return {
     bookingName: props.event.bookingName,
-    bookingEmail: props.event.bookingEmail,
+    bookingEmail: props.currentRole !== null && props.currentRole.toString().match('student') ? props.currentEmail : props.event.bookingEmail,
     eventCategory: newEventCategory.value ? newEventCategory.value : null,
     eventStartTime: props.event.eventStartTime,
     eventNotes: props.event.eventNotes ? props.event.eventNotes : ""
@@ -69,11 +77,13 @@ const checkInputInvalid = () => {
           </select>
         </li>
         <li class="m-1"><input class="input" type="text" v-model="event.bookingName"></li>
-        <li class="m-1"><input class="input" type="text" v-model="event.bookingEmail"></li>
+        <li class="m-1 text-white" v-if="currentRole !== null && currentEmail !== null && currentRole.toString().match('student')">{{newEvent.bookingEmail}}</li>
+        <li class="m-1" v-else><input class="input" type="text" v-model="event.bookingEmail"></li>
         <li class="m-1"><input class="input" type="datetime-local" v-model="event.eventStartTime"></li>
         <li class="m-1"><input class="input" type="text" v-model="event.eventNotes"></li>
       </ul>
-    </div><div class="columnC text-white">
+    </div>
+    <div class="columnC text-white">
       <ul>
         <li class="m-1"><br></li>
         <li class="m-1"><span v-if="event.bookingName !== null"><span v-if="event.bookingName.trim().length > 0" :style="event.bookingName.trim().length <= 100 ? { color: 'white' } : { color: 'red' }">{{event.bookingName.trim().length}}/100</span></span><br v-else></li>

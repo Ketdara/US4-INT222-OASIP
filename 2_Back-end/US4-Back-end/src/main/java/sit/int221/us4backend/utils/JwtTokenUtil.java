@@ -80,9 +80,9 @@ public class JwtTokenUtil implements Serializable {
     private String extractJwtFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7, bearerToken.length());
+            return bearerToken.substring(7);
         }
-        return null;
+        return "";
     }
 
     private boolean validateToken(String token) {

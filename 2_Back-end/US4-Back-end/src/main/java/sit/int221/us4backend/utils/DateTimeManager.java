@@ -17,6 +17,9 @@ public class DateTimeManager {
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private SimpleDateFormat ISOFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'");
 
+    private SimpleDateFormat emailFormatFirst = new SimpleDateFormat("EEE MMM d, yyyy HH:mm");
+    private SimpleDateFormat emailFormatSecond = new SimpleDateFormat(" - HH:mm (z)");
+
     public String dateStringToISOString(String dateString) {
         if(dateString == null) return null;
         Date date = dateStringToDate(dateString);
@@ -71,5 +74,17 @@ public class DateTimeManager {
 
         Long selectedTime = dateTimeManager.ISOStringToDate(ISOString).getTime();
         return dateTimeManager.dateToDateString(new Date(selectedTime + (3600000 * offsetHour)));
+    }
+
+    public String getEmailDate(String dateString, Integer duration) {
+        if(dateString == null || duration == null) return null;
+        System.out.println(dateString);
+        Date startDate = dateStringToDate(dateString);
+        Date endDate = dateToEndDate(startDate, duration);
+
+        String firstHalf = emailFormatFirst.format(startDate);
+        String secondHalf = emailFormatSecond.format(endDate);
+
+        return firstHalf.concat(secondHalf);
     }
 }

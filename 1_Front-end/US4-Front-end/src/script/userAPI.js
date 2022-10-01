@@ -16,7 +16,7 @@ export const userAPI = {
       console.log(`[getUsersAsPage: ${pageNum}] Successful`);
       return userPage;
     }
-    if(res.status === 400 || res.status === 401 || res.status === 404) {
+    if(res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) {
       res.json().then(promise => {
         console.log(`[getUsersAsPage: ${pageNum}] Error: ` + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
@@ -38,7 +38,7 @@ export const userAPI = {
       console.log('[getUserById] Successful');
       return user;
     }
-    if(res.status === 400 || res.status === 401 || res.status === 404) {
+    if(res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) {
       res.json().then(promise => {
         console.log('[getUserById] Error: ' + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
@@ -52,8 +52,7 @@ export const userAPI = {
 
   postUser: async function (user) {
     const res = await fetch(import.meta.env.VITE_BASE_URL + 'users', { method: 'POST',
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` },
-      headers: { 'content-type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, 'content-type': 'application/json' },
       body: JSON.stringify({
         name: user.name,
         email: user.email,
@@ -66,7 +65,7 @@ export const userAPI = {
       console.log('[postUser] Successful');
       return true;
     }
-    if(res.status === 400 || res.status === 401 || res.status === 404) {
+    if(res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) {
       res.json().then(promise => {
         console.log('[postUser] Error: ' + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
@@ -80,8 +79,7 @@ export const userAPI = {
 
   putUser: async function (user) {
     const res = await fetch(import.meta.env.VITE_BASE_URL + `users/${user.id}`, { method: 'PUT',
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` },
-      headers: { 'content-type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, 'content-type': 'application/json' },
       body: JSON.stringify({
         id: user.id,
         name: user.name,
@@ -94,7 +92,7 @@ export const userAPI = {
       console.log('[putUser] Successful');
       return true;
     }
-    if(res.status === 400 || res.status === 401 || res.status === 404) {
+    if(res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) {
       res.json().then(promise => {
         console.log('[putUser] Error: ' + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
@@ -115,7 +113,7 @@ export const userAPI = {
       console.log('[deleteUserById] Successful');
       return true;
     }
-    if(res.status === 400 || res.status === 401 || res.status === 404){
+    if(res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404){
       res.json().then(promise => {
         console.log('[deleteUserById] Error: User not found or does not exist');
         alert('Error occurred: User not found or does not exist');
@@ -137,11 +135,14 @@ export const userAPI = {
     })
 
     if(res.status === 200){
-      let tokens = await res.json();
+      let userData = await res.json(); 
       console.log('[loginUser] Successful');
 
-      localStorage.setItem('jwtToken', tokens.jwtToken);
-      localStorage.setItem('refreshToken', tokens.refreshToken);
+      localStorage.setItem('jwtToken', userData.jwtToken);
+      localStorage.setItem('refreshToken', userData.refreshToken);
+      localStorage.setItem('email', userData.email)
+      localStorage.setItem('role', userData.role)
+      localStorage.setItem('name', userData.name)
       return true;
     }
     if(res.status === 400 || res.status === 401 || res.status === 404) {
@@ -158,7 +159,7 @@ export const userAPI = {
 
   matchUser: async function (user) {
     const res = await fetch(import.meta.env.VITE_BASE_URL + 'users/match', { method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, 'content-type': 'application/json' },
       body: JSON.stringify({
         email: user.email,
         password: user.password
@@ -169,7 +170,7 @@ export const userAPI = {
       console.log('[matchUser] Successful');
       return true;
     }
-    if(res.status === 400 || res.status === 401 || res.status === 404) {
+    if(res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) {
       res.json().then(promise => {
         console.log('[matchUser] Error: ' + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));

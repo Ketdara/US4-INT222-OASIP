@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onBeforeMount } from 'vue';
+import { ref, onBeforeMount, onBeforeUpdate } from 'vue';
 import { userAPI } from "../script/userAPI.js";
 import ViewUserList from '../components/ViewUserList.vue';
 import ViewUserDetails from '../components/ViewUserDetails.vue';
@@ -17,6 +17,24 @@ const roleList = ref(['admin', 'lecturer', 'student'])
 const maxPageNum = ref(1)
 const selectedPageNum = ref(1)
 
+const currentName = ref(null);
+const currentEmail = ref(null);
+const currentRole = ref(null);
+const currentToken = ref(null);
+const currentRefreshToken = ref(null);
+
+onBeforeUpdate(async () => {
+  updateCurrentUser();
+})
+
+const updateCurrentUser = () => {
+  currentName.value = localStorage.getItem('name');
+  currentEmail.value = localStorage.getItem('email');
+  currentRole.value = localStorage.getItem('role');
+  currentToken.value = localStorage.getItem('jwtToken');
+  currentRefreshToken.value = localStorage.getItem('refreshToken');
+}
+
 const updateUsers = async () => {
   if(maxPageNum.value < selectedPageNum.value) {
     selectedPageNum.value = maxPageNum.value
@@ -30,6 +48,7 @@ const updateUsers = async () => {
 onBeforeMount(async () => {
   selectedPageNum.value = 1
   updateUsers();
+  updateCurrentUser();
 })
 
 const getUsersAsPage = async (pageNum) => {
@@ -111,6 +130,7 @@ const match = async (credentials) => {
 const login = async (credentials) => {
   if(await userAPI.loginUser(credentials)) {
     alert("Login Successful");
+    updateCurrentUser();
     updateUsers();
     toggleLogin();
   }
@@ -126,6 +146,7 @@ const refresh = async () => {
 const logout = () => {
   if(confirm("Are you sure you want to confirm logout?") === true){
     localStorage.clear();
+    updateCurrentUser();
     alert("Logout Successful");
 
     userList.value = null;
@@ -149,14 +170,15 @@ const logout = () => {
       @toggleModal="toggleMatch"
       @callMatchUser="match"/>
   </div>
-  <div class="bg-black p-4 px-7 text-white">
-    <h1 class="font-semibold text-2xl">OASIP</h1>
+  <div class="bg-black p-4 px-7 text-white ">
+    <div class="font-semibold text-2xl">OASIP<span class="float-right">Hello</span></div>
     <p class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
-    <button class="mr-10 font-semibold float-right" @click="refresh">Refresh</button>
     <button class="mr-10 font-semibold float-right" @click="toggleLogin">Login</button>
-    <button class="mr-10 font-semibold float-right" @click="logout">Logout</button>
-    <button class="mr-10 font-semibold float-right" @click="toggleMatch">Match</button>
-      <!-- Login -->
+
+    <button v-if="currentToken !== null && currentRefreshToken !== null" class="mr-10 font-semibold float-right" @click="logout">Logout</button>
+    <button v-if="currentToken !== null && currentRefreshToken !== null" class="mr-10 font-semibold float-right" @click="refresh">Refresh</button>
+    <button v-if="currentRole !== null && currentRole.toString().match('admin')" class="mr-10 font-semibold float-right" @click="toggleMatch">Match</button>  
+
 
   <!-- End-Login -->
   </div>
@@ -165,48 +187,66 @@ const logout = () => {
       <!-- User List -->
       <div class="bg-neutral-100 rounded-lg col-span-1 row-span-2 p-3"> 
         <h2 class="font-semibold">User List : </h2>
-        <div v-if="userList !== null && userList !== undefined">
-          <div v-if="userList.length > 0">
-            <button v-for="page in maxPageNum" :key="page" @click="getUsersAsPage(page)" class="bg-black text-white rounded text-l active:bg-gray-600 py px-2 mx-1 mt-1 transition-color duration-000 delay-000">{{ page }}</button>
-            <view-user-list 
-              :userList='userList'
-              @callShowUser="getUserById"
-            />
-          </div>
-        </div>
-        <div class="m-5 text-l" v-else>
-          <div>No user.</div>
-        </div>
-      </div>
+        <div v-if="currentRole !== null && currentEmail !== null">
+          <div v-if="currentRole.toString().match('admin')">
+            <div v-if="userList !== null && userList !== undefined">
 
-      <!-- Create User -->
-      <div class="bg-neutral-700 rounded-lg p-3">
-        <h2 class="font-semibold text-white">Create User : </h2>
-        <create-user
-          :roleList='roleList'
-          :user='postUI'
-          @callCreateUser="postUser"
-        />
-      </div>
+              <div v-if="userList.length > 0">
+                <button v-for="page in maxPageNum" :key="page" @click="getUsersAsPage(page)" class="bg-black text-white rounded text-l active:bg-gray-600 py px-2 mx-1 mt-1 transition-color duration-000 delay-000">{{ page }}</button>
+                <view-user-list 
+                  :userList='userList'
+                  @callShowUser="getUserById"
+                />
+              </div>
+
+            </div>
+            <div class="m-5 text-l" v-else>No user.</div> 
+          </div>
+          <div class="m-5 text-l" v-else>User unauthorized.</div>
+        </div>
+        <div class="m-5 text-l" v-else>Please login.</div>
+
+        </div>
+        <!-- Create User -->
+        <div class="bg-neutral-700 rounded-lg p-3">
+          <h2 class="font-semibold text-white">Create User : </h2>
+            <div v-if="currentRole !== null && currentEmail !== null" >
+              <div v-if="currentRole.toString().match('admin')">
+            <create-user
+              :roleList='roleList'
+              :user='postUI'
+              @callCreateUser="postUser"
+            />
+            </div>
+            <div class="text-white ml-5" v-else >User unauthorized.</div>
+          </div>
+            <div class="m-5 text-l text-white" v-else>Please login.</div> 
+        </div>
 
       <!-- User details -->
       <div class="bg-neutral-200 rounded-lg p-3">
         <h2 class="font-semibold">Show Details : </h2>
-        <view-user-details
-          v-if="!isEditing"
-          :user='user'
-          @callEditUser="toggleEdit"
-          @callRemoveUser="deleteUser"
-        />
-        <edit-user
-          v-if="isEditing"
-          :roleList='roleList'
-          :user='user'
-          @callPutUserProceed="putUser"
-          @callPutUserCancel="toggleEdit"
-        />
+        <div v-if="currentRole !== null && currentEmail !== null" >
+          <div v-if="currentRole.toString().match('admin')">
+            <view-user-details
+              v-if="!isEditing"
+              :user='user'
+              @callEditUser="toggleEdit"
+              @callRemoveUser="deleteUser"
+            />
+            <edit-user
+              v-if="isEditing"
+              :roleList='roleList'
+              :user='user'
+              @callPutUserProceed="putUser"
+              @callPutUserCancel="toggleEdit"
+            />
+          </div> 
+          <div v-else class="ml-5">User unauthorized.</div>
+        </div>
+          <div class="m-5 text-l" v-else>Please login.</div> 
+        </div>
       </div>
-    </div>
   </div>
 </div>
 </template>

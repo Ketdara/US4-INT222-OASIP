@@ -4,12 +4,15 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import sit.int221.us4backend.utils.*;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import java.util.Properties;
 
 @Configuration
 public class ApplicationConfig {
@@ -51,4 +54,22 @@ public class ApplicationConfig {
 
     @Bean
     public JwtTokenUtil jwtTokenUtil() { return JwtTokenUtil.getInstance(); }
+
+    @Bean
+    public JavaMailSender getJavaMailSender() {
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost("smtp.gmail.com");
+        mailSender.setPort(587);
+
+        mailSender.setUsername("chotiphat.que@mail.kmutt.ac.th");
+        mailSender.setPassword("Que_664499");
+
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.debug", "true");
+
+        return mailSender;
+    }
 }

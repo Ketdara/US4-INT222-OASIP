@@ -3,8 +3,8 @@
 <template>
 <div class="bg-neutral-200">
   <div class="float-right mt-12 mr-10 text-l font-semibold text-white">
-    <router-link :to="{ name: 'OASIP'}" class="mr-10"> OASIP</router-link>
-    <router-link :to="{ name: 'User'}"> User</router-link>
+    <router-link :to="{ name: 'OASIP'}" class="mr-10"> Event</router-link>
+    <router-link :to="{ name: 'User'}" class="mr-10"> User</router-link>
   </div>
   <div>
     <router-view> </router-view>

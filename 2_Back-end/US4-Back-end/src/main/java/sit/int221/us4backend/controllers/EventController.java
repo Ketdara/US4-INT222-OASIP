@@ -5,12 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import sit.int221.us4backend.dtos.EventTimeframeDTO;
 import sit.int221.us4backend.dtos.EventPartialDTO;
 import sit.int221.us4backend.dtos.EventWithValidateDTO;
+import sit.int221.us4backend.entities.Event;
 import sit.int221.us4backend.repositories.UserRepository;
 import sit.int221.us4backend.services.EventService;
-import sit.int221.us4backend.services.UserService;
+import sit.int221.us4backend.utils.DateTimeManager;
+import sit.int221.us4backend.utils.EmailUtil;
 import sit.int221.us4backend.utils.JwtTokenUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,6 +27,10 @@ public class EventController {
     private JwtTokenUtil jwtTokenUtil;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EmailUtil emailUtil;
+    @Autowired
+    private DateTimeManager dateTimeManager;
 
     @GetMapping("")
     public Page<EventPartialDTO> getEventsAll(
@@ -35,7 +40,6 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        String tokenRole = getRoleFromEmail(tokenEmail);
 
         return eventService.getEventDTOsAsPage(page, pageSize, tokenEmail);
     }
@@ -49,7 +53,6 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        String tokenRole = getRoleFromEmail(tokenEmail);
 
         return eventService.getEventDTOsByCategoryAsPage(page, pageSize, categoryId, tokenEmail);
     }
@@ -63,7 +66,6 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        String tokenRole = getRoleFromEmail(tokenEmail);
 
         return eventService.getEventDTOsByUpcomingAsPage(page, pageSize, now, tokenEmail);
     }
@@ -77,7 +79,6 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        String tokenRole = getRoleFromEmail(tokenEmail);
 
         return eventService.getEventDTOsByPastAsPage(page, pageSize, now, tokenEmail);
     }
@@ -91,7 +92,6 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        String tokenRole = getRoleFromEmail(tokenEmail);
 
         return eventService.getEventDTOsByDateAsPage(page, pageSize, date, tokenEmail);
     }
@@ -121,11 +121,31 @@ public class EventController {
             @RequestBody EventWithValidateDTO newEventDTO,
             HttpServletRequest request) {
 
-        jwtTokenUtil.validateTokenFromHeader(request);
-        String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        String tokenRole = getRoleFromEmail(tokenEmail);
+        String tokenEmail;
+        String tokenRole;
 
-        eventService.postEventDTO(newEventDTO, tokenEmail, tokenRole);
+        try {
+            jwtTokenUtil.validateTokenFromHeader(request);
+            tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
+            tokenRole = getRoleFromEmail(tokenEmail);
+        } catch(ResponseStatusException e){
+            tokenEmail = null;
+            tokenRole = "guest";
+        }
+
+        Event postedEvent = eventService.postEventDTO(newEventDTO, tokenEmail, tokenRole);
+        String to = postedEvent.getBookingEmail();
+        String bookingName = postedEvent.getBookingName();
+        String eventCategory = postedEvent.getEventCategory().getEventCategoryName();
+        String when = dateTimeManager.getEmailDate(postedEvent.getEventStartTime(), postedEvent.getEventDuration());
+        String eventNotes = postedEvent.getEventNotes();
+
+        String subject = "[OASIP] " + eventCategory + " @ " + when;
+        String text = "Booking Name: PBI 36 " + bookingName
+                + "\nEvent Category: " + eventCategory
+                + "\nWhen: " + when
+                + "\nEvent Notes: " + eventNotes;
+        emailUtil.sendRealEmail(to, subject, text);
     }
 
     @PutMapping("/{event_id}")
