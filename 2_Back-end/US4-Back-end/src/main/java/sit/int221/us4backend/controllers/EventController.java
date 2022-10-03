@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.EventPartialDTO;
+import sit.int221.us4backend.dtos.EventTimeframeDTO;
 import sit.int221.us4backend.dtos.EventWithValidateDTO;
 import sit.int221.us4backend.entities.Event;
 import sit.int221.us4backend.entities.User;
@@ -17,8 +18,9 @@ import sit.int221.us4backend.utils.EmailUtil;
 import sit.int221.us4backend.utils.JwtTokenUtil;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+//@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/events")
 public class EventController {
@@ -178,5 +180,12 @@ public class EventController {
         }catch (NullPointerException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email from token " + email + " not found or does not exist");
         }
+    }
+
+    @GetMapping("/timeframe")
+    public List<EventTimeframeDTO> getEventTimeframes(
+            @RequestParam String date,
+            @RequestParam Integer categoryId) {
+        return eventService.getEventTimeframeDTOs(date, categoryId, true);
     }
 }

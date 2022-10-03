@@ -6,6 +6,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class DateTimeManager {
     private static final DateTimeManager dateTimeManager = new DateTimeManager();
@@ -78,9 +79,11 @@ public class DateTimeManager {
 
     public String getEmailDate(String dateString, Integer duration) {
         if(dateString == null || duration == null) return null;
-        System.out.println(dateString);
         Date startDate = dateStringToDate(dateString);
         Date endDate = dateToEndDate(startDate, duration);
+
+        emailFormatFirst.setTimeZone(TimeZone.getTimeZone("Asia/Bangkok"));
+        emailFormatSecond.setTimeZone(TimeZone.getTimeZone("Asia/Bangkok"));
 
         String firstHalf = emailFormatFirst.format(startDate);
         String secondHalf = emailFormatSecond.format(endDate);

@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: sit.int221.us4backend.Us4BackEndApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.88 s - in sit.int221.us4backend.Us4BackEndApplicationTests
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.792 s - in sit.int221.us4backend.Us4BackEndApplicationTests
