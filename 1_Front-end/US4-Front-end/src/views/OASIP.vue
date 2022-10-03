@@ -83,7 +83,7 @@ const getEventById = async (id) => {
 
 const postEvent = async (event) => {
   if(await eventAPI.postEvent(event)) {
-    updateEvents();
+    if(currentRole.value !== null) updateEvents();
     resetPostUI();
   }
 }
@@ -144,7 +144,8 @@ const toggleModal = () => {
 <div class="pb-5">
   <div class="bg-black p-4 px-7 text-white">
     <h1 class="font-semibold text-2xl">OASIP</h1>
-    <p class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
+    <p v-if="currentName === null" class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
+    <p v-else class="text-l inline">Welcome user: <span class="ml-1" style="color:Lime;">{{currentName.slice(0, 30)}}</span></p>
     <button class="mr-10 font-semibold float-right" @click="toggleModal">Event Category</button>
   </div>
   <div>
@@ -191,7 +192,7 @@ const toggleModal = () => {
       <!-- Create Event -->
       <div class="bg-neutral-700 rounded-lg p-3">
         <h2 class="font-semibold text-white">Create Event : </h2>
-        <!-- <div v-if="currentRole !== null"> -->
+        <div v-if="currentRole === null || !currentRole.toString().match('lecturer')">
           <schedule-event
             :event='postUI'
             :eventCategoryList='eventCategories'
@@ -199,8 +200,8 @@ const toggleModal = () => {
             :currentRole="currentRole"
             :currentEmail="currentEmail"
           />
-        <!-- </div> -->
-        <!-- <div class="m-5 text-l text-white" v-else>Please login.</div> -->
+        </div>
+        <div class="m-5 text-l text-white" v-else>User prohibited.</div>
       </div>
       
 
@@ -213,13 +214,16 @@ const toggleModal = () => {
             :event='event'
             @callEditEvent="toggleEdit"
             @callRemoveEvent="deleteEvent"
+            :currentRole="currentRole"
           />
-          <reschedule-event
-          v-if="isEditing"
-          :event='event'
-          @callPutEventProceed="putEvent"
-          @callPutEventCancel="toggleEdit"
-          />
+          <div v-if="!currentRole.toString().match('lecturer')">
+            <reschedule-event
+            v-if="isEditing"
+            :event='event'
+            @callPutEventProceed="putEvent"
+            @callPutEventCancel="toggleEdit"
+            />
+          </div>
         </div>
         <div class="m-5 text-l" v-else>Please login.</div>
       </div>

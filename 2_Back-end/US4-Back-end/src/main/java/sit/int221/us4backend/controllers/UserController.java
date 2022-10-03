@@ -87,9 +87,8 @@ public class UserController {
 
     private void accessControl(HttpServletRequest request) {
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        String tokenRole = userService.getRoleFromEmail(tokenEmail);
+        String tokenRole = userService.getUserFromEmail(tokenEmail).getRole();
         if(tokenRole.equals("admin")) return;
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
     }
-
 }

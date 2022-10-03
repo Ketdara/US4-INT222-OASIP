@@ -20,7 +20,6 @@ import sit.int221.us4backend.utils.JwtTokenUtil;
 import sit.int221.us4backend.utils.ListMapper;
 import sit.int221.us4backend.utils.UserValidator;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Service
@@ -191,12 +190,11 @@ public class UserService {
         return ResponseEntity.ok(new JwtResponse(jwtToken, refreshToken));
     }
 
-    public String getRoleFromEmail(String email) {
+    public User getUserFromEmail(String email) {
         try {
-            return userRepository.findByEmail(email).getRole();
+            return userRepository.findByEmail(email);
         }catch (NullPointerException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email from token " + email + " not found or does not exist");
         }
     }
-
 }

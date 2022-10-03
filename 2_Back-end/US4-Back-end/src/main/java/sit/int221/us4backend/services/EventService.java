@@ -11,6 +11,9 @@ import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.EventTimeframeDTO;
 import sit.int221.us4backend.dtos.EventWithValidateDTO;
 import sit.int221.us4backend.entities.Event;
+import sit.int221.us4backend.entities.EventCategoryOwner;
+import sit.int221.us4backend.entities.User;
+import sit.int221.us4backend.repositories.EventCategoryOwnerRepository;
 import sit.int221.us4backend.repositories.EventRepository;
 import sit.int221.us4backend.dtos.EventPartialDTO;
 import sit.int221.us4backend.repositories.UserRepository;
@@ -36,6 +39,8 @@ public class EventService {
     private UserService userService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EventCategoryOwnerRepository eventCategoryOwnerRepository;
 
     private Sort sort = Sort.by("eventStartTime").descending();
     private Integer maxDuration = 8;    // hours
@@ -47,73 +52,69 @@ public class EventService {
     private Integer beforeDateBuffer = maxDuration * -1;
     private Integer afterDateBuffer = 24 + maxDuration;
 
-    public Page<EventPartialDTO> getEventDTOsAsPage(Integer page, Integer pageSize, String email) {
+    public Page<EventPartialDTO> getEventDTOsAsPage(Integer page, Integer pageSize, User user) {
         Page<Event> eventPage;
-        String tokenRole = userService.getRoleFromEmail(email);
+        String userRole = user.getRole();
 
-        if(tokenRole.equals("admin")) eventPage = eventRepository.findAll(PageRequest.of(page, pageSize, sort));
-        else if(tokenRole.equals("student")) eventPage = eventRepository.findAllByBookingEmail(email, PageRequest.of(page, pageSize, sort));
-        else if(tokenRole.equals("lecturer")) eventPage = eventRepository.findAll(PageRequest.of(page, pageSize, sort));
+        if(userRole.equals("admin")) eventPage = eventRepository.findAll(PageRequest.of(page, pageSize, sort));
+        else if(userRole.equals("student")) eventPage = eventRepository.findAllByBookingEmail(user.getEmail(), PageRequest.of(page, pageSize, sort));
+        else if(userRole.equals("lecturer")) eventPage = eventRepository.findAllByLecturerId(user.getId(), PageRequest.of(page, pageSize));
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
     }
 
-    public Page<EventPartialDTO> getEventDTOsByCategoryAsPage(Integer page, Integer pageSize, Integer categoryId, String email) {
+    public Page<EventPartialDTO> getEventDTOsByCategoryAsPage(Integer page, Integer pageSize, Integer categoryId, User user) {
         if(categoryId == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category ID not specified");
-
         Page<Event> eventPage;
-        String tokenRole = userService.getRoleFromEmail(email);
+        String userRole = user.getRole();
 
-        if(tokenRole.equals("admin")) eventPage = eventRepository.findAllByEventCategory_Id(categoryId, PageRequest.of(page, pageSize, sort));
-        else if(tokenRole.equals("student")) eventPage = eventRepository.findAllByEventCategory_IdAndBookingEmail(categoryId, email, PageRequest.of(page, pageSize, sort));
-        else if(tokenRole.equals("lecturer")) eventPage = eventRepository.findAllByEventCategory_Id(categoryId, PageRequest.of(page, pageSize, sort));
+        if(userRole.equals("admin")) eventPage = eventRepository.findAllByEventCategory_Id(categoryId, PageRequest.of(page, pageSize, sort));
+        else if(userRole.equals("student")) eventPage = eventRepository.findAllByEventCategory_IdAndBookingEmail(categoryId, user.getEmail(), PageRequest.of(page, pageSize, sort));
+        else if(userRole.equals("lecturer")) eventPage = eventRepository.findAllByEventCategory_IdAndLecturerId(user.getId(), categoryId, PageRequest.of(page, pageSize));
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
     }
 
-    public Page<EventPartialDTO> getEventDTOsByUpcomingAsPage(Integer page, Integer pageSize, String nowISOString, String email) {
+    public Page<EventPartialDTO> getEventDTOsByUpcomingAsPage(Integer page, Integer pageSize, String nowISOString, User user) {
         if(nowISOString == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Timestamp not specified");
         String now = dateTimeManager.ISOStringToDateString(nowISOString);
-
         Page<Event> eventPage;
-        String tokenRole = userService.getRoleFromEmail(email);
+        String userRole = user.getRole();
 
-        if(tokenRole.equals("admin")) eventPage = eventRepository.findEventUpcomingAll(now, PageRequest.of(page, pageSize, sort));
-        else if(tokenRole.equals("student")) eventPage = eventRepository.findEventUpcomingAllAndEmail(now, email, PageRequest.of(page, pageSize, sort));
-        else if(tokenRole.equals("lecturer")) eventPage = eventRepository.findEventUpcomingAll(now, PageRequest.of(page, pageSize, sort));
+        if(userRole.equals("admin")) eventPage = eventRepository.findEventUpcomingAll(now, PageRequest.of(page, pageSize, sort));
+        else if(userRole.equals("student")) eventPage = eventRepository.findEventUpcomingAllAndEmail(now, user.getEmail(), PageRequest.of(page, pageSize, sort));
+        else if(userRole.equals("lecturer")) eventPage = eventRepository.findEventUpcomingAllAndLecturerId(now, user.getId(), PageRequest.of(page, pageSize));
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
     }
 
-    public Page<EventPartialDTO> getEventDTOsByPastAsPage(Integer page, Integer pageSize, String nowISOString, String email) {
+    public Page<EventPartialDTO> getEventDTOsByPastAsPage(Integer page, Integer pageSize, String nowISOString, User user) {
         if(nowISOString == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Timestamp not specified");
         String now = dateTimeManager.ISOStringToDateString(nowISOString);
-
         Page<Event> eventPage;
-        String tokenRole = userService.getRoleFromEmail(email);
+        String userRole = user.getRole();
 
-        if(tokenRole.equals("admin")) eventPage = eventRepository.findEventPastAll(now, PageRequest.of(page, pageSize, sort));
-        else if(tokenRole.equals("student")) eventPage = eventRepository.findEventPastAllAndEmail(now, email, PageRequest.of(page, pageSize, sort));
-        else if(tokenRole.equals("lecturer")) eventPage = eventRepository.findEventPastAll(now, PageRequest.of(page, pageSize, sort));
+        if(userRole.equals("admin")) eventPage = eventRepository.findEventPastAll(now, PageRequest.of(page, pageSize, sort));
+        else if(userRole.equals("student")) eventPage = eventRepository.findEventPastAllAndEmail(now, user.getEmail(), PageRequest.of(page, pageSize, sort));
+        else if(userRole.equals("lecturer")) eventPage = eventRepository.findEventPastAllAndLecturerId(now, user.getId(), PageRequest.of(page, pageSize));
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
     }
 
-    public Page<EventPartialDTO> getEventDTOsByDateAsPage(Integer page, Integer pageSize, String dateISOString, String email) {
+    public Page<EventPartialDTO> getEventDTOsByDateAsPage(Integer page, Integer pageSize, String dateISOString, User user) {
         if(dateISOString == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ICT Date timestamp not specified");
         String thisDate = dateTimeManager.ISOStringToDateString(dateISOString);
         String nextDate = dateTimeManager.ISOStringToOffsetDateString(dateISOString, 24); // next 24 hours
-
         Page<Event> eventPage;
-        String tokenRole = userService.getRoleFromEmail(email);
+        String userRole = user.getRole();
 
-        if(tokenRole.equals("admin")) eventPage = eventRepository.findAllByEventStartTimeBetween(thisDate, nextDate, PageRequest.of(page, pageSize, sort));
-        else if(tokenRole.equals("student")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndBookingEmail(thisDate, nextDate, email, PageRequest.of(page, pageSize, sort));
-        else if(tokenRole.equals("lecturer")) eventPage = eventRepository.findAllByEventStartTimeBetween(thisDate, nextDate, PageRequest.of(page, pageSize, sort));
+        if(userRole.equals("admin")) eventPage = eventRepository.findAllByEventStartTimeBetween(thisDate, nextDate, PageRequest.of(page, pageSize, sort));
+        else if(userRole.equals("student")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndBookingEmail(thisDate, nextDate, user.getEmail(), PageRequest.of(page, pageSize, sort));
+        else if(userRole.equals("lecturer")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndLecturerId(thisDate, nextDate, user.getId(), PageRequest.of(page, pageSize));
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
@@ -151,12 +152,19 @@ public class EventService {
         return timeframes;
     }
 
-    public EventWithValidateDTO getEventDTOById(Integer event_id, String tokenEmail, String tokenRole) {
+    public EventWithValidateDTO getEventDTOById(Integer event_id, User user) {
         Event event = eventRepository.findById(event_id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event " + event_id + " not found or does not exist"));
         event.setEventStartTime(dateTimeManager.dateStringToISOString(event.getEventStartTime()));
+        String userRole = user.getRole();
 
-        if(tokenRole.equals("student") && !event.getBookingEmail().equals(tokenEmail)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
+        if(userRole.equals("student") && !event.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
+        if(userRole.equals("lecturer")) {
+            List<EventCategoryOwner> lecturerCategory = eventCategoryOwnerRepository.findAllById_UserId(user.getId());
+            if(!lecturerCategory.stream().anyMatch(category -> category.getId().getEventCategoryId() == event.getEventCategory().getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
+            }
+        }
 
         return modelMapper.map(event, EventWithValidateDTO.class);
     }
@@ -168,10 +176,12 @@ public class EventService {
         return modelMapper.map(event, EventWithValidateDTO.class);
     }
 
-    public Event postEventDTO(EventWithValidateDTO newEventDTO, String email, String tokenRole) {
+    public Event postEventDTO(EventWithValidateDTO newEventDTO, User user) {
         callEventValidator(newEventDTO, false);
+        String userRole = user.getRole();
 
-        if(tokenRole.equals("student") && !newEventDTO.getBookingEmail().equals(email)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email does not match with current user email");
+        if(userRole.equals("student") && !newEventDTO.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email does not match with current user email");
+        if(userRole.equals("lecturer")) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
 
         newEventDTO.setEventStartTime(dateTimeManager.ISOStringToDateString(newEventDTO.getEventStartTime()));
         trimEventField(newEventDTO);
@@ -180,10 +190,12 @@ public class EventService {
         return eventRepository.saveAndFlush(newEvent);
     }
 
-    public Event putEventDTO(EventWithValidateDTO newEventDTO, Integer event_id, String email, String tokenRole) {
+    public Event putEventDTO(EventWithValidateDTO newEventDTO, Integer event_id, User user) {
         callEventValidator(newEventDTO, true);
+        String userRole = user.getRole();
 
-        if(tokenRole.equals("student") && !newEventDTO.getBookingEmail().equals(email)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot edit this event");
+        if(userRole.equals("student") && !newEventDTO.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot edit this event");
+        if(userRole.equals("lecturer")) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
 
         newEventDTO.setEventStartTime(dateTimeManager.ISOStringToDateString(newEventDTO.getEventStartTime()));
         trimEventField(newEventDTO);
@@ -210,9 +222,12 @@ public class EventService {
         return oldEvent;
     }
 
-    public void deleteEventDTOById(Integer event_id, String email, String tokenRole) {
+    public void deleteEventDTOById(Integer event_id, User user) {
         EventWithValidateDTO event = getEventDTOByIdShort(event_id);
-        if(tokenRole.equals("student") && !event.getBookingEmail().equals(email)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot delete this event");
+        String userRole = user.getRole();
+
+        if(userRole.equals("student") && !event.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot delete this event");
+        if(userRole.equals("lecturer")) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
 
         eventRepository.findById(event_id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event " + event_id + " not found or does not exist"));
@@ -246,6 +261,4 @@ public class EventService {
         Page<Event> eventPage = eventRepository.findAllByBookingEmail(email, PageRequest.of(page, pageSize, sort));
         return mapPageAndFormatStartTime(eventPage);
     }
-
-
 }

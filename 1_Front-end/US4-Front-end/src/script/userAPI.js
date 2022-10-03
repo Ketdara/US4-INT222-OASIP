@@ -16,10 +16,16 @@ export const userAPI = {
       console.log(`[getUsersAsPage: ${pageNum}] Successful`);
       return userPage;
     }
-    if(res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) {
+    if(res.status === 400 || res.status === 401 || res.status === 404) {
       res.json().then(promise => {
         console.log(`[getUsersAsPage: ${pageNum}] Error: ` + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
+      });
+      return false;
+    }
+    if(res.status === 403) {
+      res.json().then(promise => {
+        console.log(`[getUsersAsPage: ${pageNum}] Error: ` + promise.message.replace(/; /g, '\n'));
       });
       return false;
     }

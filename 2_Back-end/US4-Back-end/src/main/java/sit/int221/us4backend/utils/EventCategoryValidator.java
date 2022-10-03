@@ -5,7 +5,6 @@ import sit.int221.us4backend.dtos.EventCategoryDTO;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 

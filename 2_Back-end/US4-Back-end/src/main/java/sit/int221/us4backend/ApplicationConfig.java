@@ -23,7 +23,8 @@ public class ApplicationConfig {
         return modelMapper;
     }
 
-    private Argon2PasswordEncoder argon2Encoder = new Argon2PasswordEncoder(16, 16, 1, 2048, 3);
+//    private Argon2PasswordEncoder argon2Encoder = new Argon2PasswordEncoder(16, 16, 1, 2048, 3);
+    private Argon2PasswordEncoder argon2Encoder = new Argon2PasswordEncoder();
     @Bean
     public Argon2PasswordEncoder argon2Encoder() { return argon2Encoder; }
 

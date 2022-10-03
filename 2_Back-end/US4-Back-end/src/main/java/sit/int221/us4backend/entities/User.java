@@ -10,7 +10,6 @@ import java.time.Instant;
         @Index(name = "email_UNIQUE", columnList = "email", unique = true),
         @Index(name = "name_UNIQUE", columnList = "name", unique = true)
 })
-//@Table(name = "user")
 @Entity
 @Getter
 @Setter
@@ -30,7 +29,7 @@ public class User {
     @Column(name = "role", nullable = false)
     private String role;
 
-    @Column(name = "password", nullable = false, length = 90)
+    @Column(name = "password", nullable = false, length = 100)
     private String password;
 
     @Column(name = "createdOn")

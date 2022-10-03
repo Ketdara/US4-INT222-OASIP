@@ -60,13 +60,34 @@ CREATE TABLE IF NOT EXISTS `us4db`.`user` (
   `user_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL,
   `email` VARCHAR(100) NOT NULL,
-  `password` CHAR(90) NOT NULL,
+  `password` CHAR(100) NOT NULL,
   `role` ENUM('admin', 'lecturer', 'student') NOT NULL DEFAULT 'student',
   `createdOn` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updatedOn` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE,
   UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE,
   PRIMARY KEY (`user_id`))
+ENGINE = InnoDB;
+
+-- -----------------------------------------------------
+-- Table `mydb`.`eventCategoryOwner`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `us4db`.`eventCategoryOwner` (
+  `eventCategory_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  PRIMARY KEY (`eventCategory_id`, `user_id`),
+  INDEX `fk_eventCategory_has_user_user1_idx` (`user_id` ASC) VISIBLE,
+  INDEX `fk_eventCategory_has_user_eventCategory1_idx` (`eventCategory_id` ASC) VISIBLE,
+  CONSTRAINT `fk_eventCategory_has_user_eventCategory1`
+    FOREIGN KEY (`eventCategory_id`)
+    REFERENCES `us4db`.`eventCategory` (`eventCategory_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_eventCategory_has_user_user1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `us4db`.`user` (`user_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 -- insert to event --
@@ -77,10 +98,20 @@ insert into `event`(`bookingName`,`bookingEmail`,`eventCategory_id`,`eventStartT
 
 -- insert to user --
 INSERT INTO `user`(`name`,`email`,`password`,`role`) VALUES 
-('OASIP ADMIN','oasip.admin@kmutt.ac.th','$argon2id$v=19$m=2048,t=3,p=1$WUJvVjE0WnNnNjY1OVcwZQ$JuvyP93enl+wDMZai5NVpg','admin'),
-('Somchai Jaidee','somchai.jai@kmutt.ac.th','$argon2id$v=19$m=2048,t=3,p=1$bmtGb3dZNEFTaUZPOGI2bQ$3APBDKqu3seKDq6AL+f41A','lecturer'),
-('Komkrid Rakdee','komkrid.rak@mail.kmutt.ac.th','$argon2id$v=19$m=2048,t=3,p=1$MTMzTXc4OWkxRTRKOFR2YQ$ALqpA412ZGjK8p0F3XqrEA','student');
+('OASIP ADMIN','oasip.admin@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$sYXzbUOqBoHY1NfhJ8cjnw$H6+adWySiFPgcUogJK3hEhcF6Y4fusy7tcXYEL+f0cQ','admin'),
+('Olarn Rojanapornpun','olarn.roj@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$Sx7y2jxKZSjpWUV4srd8eg$AMH09iFiPQgAZ00cAdN3Gucqfhx2kRo3tQbHeLSR0RE','lecturer'),
+('Pichet Limvachiranan','pichet.limv@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$46EB43gQ46Z1/EmdqxtKNA$7m6cWGO2iDlFl/ETDYuYf+ArnSjRnsNwXLIP18DTYQY','lecturer'),
+('Umaporn Supasitthimethee','umaporn.sup@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$46EB43gQ46Z1/EmdqxtKNA$7m6cWGO2iDlFl/ETDYuYf+ArnSjRnsNwXLIP18DTYQY','lecturer'),
+('Siam Yamsaengsung','siam.yam@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$C4pPaNWKTnZQX2mPs14jlg$rQ5W5NYKqGOu1B4GkUWq8cFbcg2peFWGjpUMr9Nkm8g','lecturer'),
+('Sunisa Sathapornvajana','sunisa.sat@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$29/ffaszvjvi3CZO45bSCg$kKpfq5WEswoqa/LfyIZzQaQ6AFdjhyiYjXRCfMiTnwg','lecturer'),
+('Somchai Jaidee','somchai.jai@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$dmsOy7LPTjmooPu+P2oTZA$NZFTFd3f0K1Sp19aaUwyn3jgiy15yFcXhp8E4/1yXoI','student'),
+('Komkrid Rakdee','komkrid.rak@mail.kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$8W61ZOC5RU7sJP5kKRbSqg$OLwZNPeMqxp+g0Vbn+odcA47XMClFN+IswTueVah7F0','student'),
+('สมเกียรติ ขยันเรียน','somkiat.kay@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$gBqgjspF45FcIKQEw8GmaQ$alrOCZ0YrDqOu8/aZiLDMGZo4vFkSEAXA0YoHhY0BDQ','student');
 
+-- insert to user --
+INSERT INTO `eventCategoryOwner`(`eventCategory_id`,`user_id`) VALUES 
+('1', '2'), ('2', '2'),('2','5'),('3','6'), ('4', '4'),('5', '3'), ('5', '2');
+-- ----------------------- --
 create user 'dbconn'@'%' identified by 'int221';
 grant all privileges on *.* TO 'dbconn'@'%';
 flush privileges;

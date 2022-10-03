@@ -170,9 +170,10 @@ const logout = () => {
       @toggleModal="toggleMatch"
       @callMatchUser="match"/>
   </div>
-  <div class="bg-black p-4 px-7 text-white ">
-    <div class="font-semibold text-2xl">OASIP<span class="float-right">Hello</span></div>
-    <p class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
+  <div class="bg-black p-4 px-7 text-white">
+    <div class="font-semibold text-2xl">OASIP</div>
+    <p v-if="currentName === null" class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
+    <p v-else class="text-l inline">Welcome user: <span class="ml-1" style="color:Lime;">{{currentName.slice(0, 30)}}</span></p>
     <button class="mr-10 font-semibold float-right" @click="toggleLogin">Login</button>
 
     <button v-if="currentToken !== null && currentRefreshToken !== null" class="mr-10 font-semibold float-right" @click="logout">Logout</button>
@@ -202,7 +203,7 @@ const logout = () => {
             </div>
             <div class="m-5 text-l" v-else>No user.</div> 
           </div>
-          <div class="m-5 text-l" v-else>User unauthorized.</div>
+          <div class="m-5 text-l" v-else>User prohibited.</div>
         </div>
         <div class="m-5 text-l" v-else>Please login.</div>
 
@@ -218,7 +219,7 @@ const logout = () => {
               @callCreateUser="postUser"
             />
             </div>
-            <div class="text-white ml-5" v-else >User unauthorized.</div>
+            <div class="text-white ml-5" v-else >User prohibited.</div>
           </div>
             <div class="m-5 text-l text-white" v-else>Please login.</div> 
         </div>
@@ -242,7 +243,7 @@ const logout = () => {
               @callPutUserCancel="toggleEdit"
             />
           </div> 
-          <div v-else class="ml-5">User unauthorized.</div>
+          <div v-else class="ml-5">User prohibited.</div>
         </div>
           <div class="m-5 text-l" v-else>Please login.</div> 
         </div>

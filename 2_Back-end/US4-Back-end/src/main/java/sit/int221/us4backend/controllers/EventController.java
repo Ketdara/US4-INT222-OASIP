@@ -8,6 +8,8 @@ import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.EventPartialDTO;
 import sit.int221.us4backend.dtos.EventWithValidateDTO;
 import sit.int221.us4backend.entities.Event;
+import sit.int221.us4backend.entities.User;
+import sit.int221.us4backend.repositories.EventCategoryOwnerRepository;
 import sit.int221.us4backend.repositories.UserRepository;
 import sit.int221.us4backend.services.EventService;
 import sit.int221.us4backend.utils.DateTimeManager;
@@ -15,7 +17,6 @@ import sit.int221.us4backend.utils.EmailUtil;
 import sit.int221.us4backend.utils.JwtTokenUtil;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
@@ -40,8 +41,9 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
+        User user = getUserFromEmail(tokenEmail);
 
-        return eventService.getEventDTOsAsPage(page, pageSize, tokenEmail);
+        return eventService.getEventDTOsAsPage(page, pageSize, user);
     }
 
     @GetMapping("/category")
@@ -53,8 +55,9 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
+        User user = getUserFromEmail(tokenEmail);
 
-        return eventService.getEventDTOsByCategoryAsPage(page, pageSize, categoryId, tokenEmail);
+        return eventService.getEventDTOsByCategoryAsPage(page, pageSize, categoryId, user);
     }
 
     @GetMapping("/upcoming")
@@ -66,8 +69,9 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
+        User user = getUserFromEmail(tokenEmail);
 
-        return eventService.getEventDTOsByUpcomingAsPage(page, pageSize, now, tokenEmail);
+        return eventService.getEventDTOsByUpcomingAsPage(page, pageSize, now, user);
     }
 
     @GetMapping("/past")
@@ -79,8 +83,9 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
+        User user = getUserFromEmail(tokenEmail);
 
-        return eventService.getEventDTOsByPastAsPage(page, pageSize, now, tokenEmail);
+        return eventService.getEventDTOsByPastAsPage(page, pageSize, now, user);
     }
 
     @GetMapping("/date")
@@ -92,16 +97,10 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
+        User user = getUserFromEmail(tokenEmail);
 
-        return eventService.getEventDTOsByDateAsPage(page, pageSize, date, tokenEmail);
+        return eventService.getEventDTOsByDateAsPage(page, pageSize, date, user);
     }
-
-//    @GetMapping("/timeframe")
-//    public List<EventTimeframeDTO> getEventTimeframes(
-//            @RequestParam String date,
-//            @RequestParam Integer categoryId) {
-//        return eventService.getEventTimeframeDTOs(date, categoryId, true);
-//    }
 
     @GetMapping("/{event_id}")
     public EventWithValidateDTO getEventById(
@@ -110,9 +109,9 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        String tokenRole = getRoleFromEmail(tokenEmail);
+        User user = getUserFromEmail(tokenEmail);
 
-        return eventService.getEventDTOById(event_id, tokenEmail, tokenRole);
+        return eventService.getEventDTOById(event_id, user);
     }
 
     @PostMapping("")
@@ -122,18 +121,18 @@ public class EventController {
             HttpServletRequest request) {
 
         String tokenEmail;
-        String tokenRole;
+        User user;
 
         try {
             jwtTokenUtil.validateTokenFromHeader(request);
             tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-            tokenRole = getRoleFromEmail(tokenEmail);
+            user = getUserFromEmail(tokenEmail);
         } catch(ResponseStatusException e){
-            tokenEmail = null;
-            tokenRole = "guest";
+            user = new User();
+            user.setRole("guest");
         }
 
-        Event postedEvent = eventService.postEventDTO(newEventDTO, tokenEmail, tokenRole);
+        Event postedEvent = eventService.postEventDTO(newEventDTO, user);
         String to = postedEvent.getBookingEmail();
         String bookingName = postedEvent.getBookingName();
         String eventCategory = postedEvent.getEventCategory().getEventCategoryName();
@@ -156,9 +155,9 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        String tokenRole = getRoleFromEmail(tokenEmail);
+        User user = getUserFromEmail(tokenEmail);
 
-        eventService.putEventDTO(newEventDTO, event_id, tokenEmail, tokenRole);
+        eventService.putEventDTO(newEventDTO, event_id, user);
     }
 
     @DeleteMapping("/{event_id}")
@@ -168,14 +167,14 @@ public class EventController {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        String tokenRole = getRoleFromEmail(tokenEmail);
+        User user = getUserFromEmail(tokenEmail);
 
-        eventService.deleteEventDTOById(event_id, tokenEmail, tokenRole);
+        eventService.deleteEventDTOById(event_id, user);
     }
 
-    private String getRoleFromEmail(String email) {
+    private User getUserFromEmail(String email) {
         try {
-            return userRepository.findByEmail(email).getRole();
+            return userRepository.findByEmail(email);
         }catch (NullPointerException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email from token " + email + " not found or does not exist");
         }
