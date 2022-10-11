@@ -34,9 +34,8 @@ const deleteConfirmation = () => {
     <ul class="my-4">
       <li class="m-2 font-bold text-l">Additional Information:</li>
       <li class="m-2">▸ {{ event.eventNotes === null || event.eventNotes.length === 0 ? "No details" : event.eventNotes }}</li>
-      <!-- {{typeof(event.file)}} -->
-      <!-- <img :src="'data:image/png;base64,' + event.file"> -->
-      <a :href="event.url" :download="event.fileName">{{event.fileName}}</a>
+      <li v-if="event.fileName !== null" class="m-2">▸ <a :href="event.url" style="color :blue" :download="event.fileName">{{event.fileName}}</a></li>
+      
     </ul>
     <div v-if="!currentRole.match('lecturer')" class="float-right">
       <button

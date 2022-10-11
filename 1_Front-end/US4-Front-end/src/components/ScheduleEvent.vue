@@ -69,12 +69,6 @@ const selectFile = (event) => {
     return false;
   }
   props.event.attachment = event.target.files[0];
-  var blob = new Blob([props.event.attachment]);
-  url.value = URL.createObjectURL(blob);
-  console.log(blob);
-  
-  console.log(props.event.attachment);
-  console.log(props.event.attachment.name.split('.').pop());
   return true;
 }
 
@@ -107,9 +101,8 @@ const url = ref("")
         <li class="m-1" v-else><input class="input" type="text" v-model="event.bookingEmail"></li>
         <li class="m-1"><input class="input" type="datetime-local" v-model="event.eventStartTime"></li>
         <li class="m-1"><input class="input" type="text" v-model="event.eventNotes"></li>
-        <li class="m-1 text-white"><span class="fileSelect"><input type="file" @change="selectFile"><span v-if="event.attachment.name !== undefined">{{event.attachment.name.length > 22 ? event.attachment.name.slice(0, 10) + "..." + event.attachment.name.slice(-10) : event.attachment.name}}</span></span></li>
+        <li class="m-1 text-white"><span class="fileSelect"><input type="file" @change="selectFile"><span v-if="event.attachment.name !== undefined && event.attachment.name !== null">{{event.attachment.name.length > 22 ? event.attachment.name.slice(0, 10) + "..." + event.attachment.name.slice(-10) : event.attachment.name}}</span></span></li>
       </ul>
-      <!-- <a href="http://localhost:3000/30b230d5-9e83-487b-b340-4aee72e159dd" download="hello.jpg">Here {{event.url}}</a> -->
     </div>
     <div class="columnC text-white">
       <ul>

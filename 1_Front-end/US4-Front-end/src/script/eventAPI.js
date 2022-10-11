@@ -83,10 +83,6 @@ export const eventAPI = {
       this.UTCToLocal(event);
       console.log('[getEventById] Successful');
 
-      // var blob = new Blob([new Uint8Array(event.file)]);
-      // console.log(URL.createObjectURL(blob));
-      // event.url = URL.createObjectURL(blob);
-
       var blob = this.b64toBlob(event.file, ' ');
       event.url = URL.createObjectURL(blob);
 

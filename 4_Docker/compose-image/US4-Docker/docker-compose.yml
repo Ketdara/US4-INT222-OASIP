@@ -23,7 +23,7 @@ services:
       JWT_REFRESHSECRET: us4refresh
       JWT_EXPIRATIONINMS: 1800000
       JWT_REFRESHEXPIRATIONINMS: 86400000
-      FILE_UPLOAD_PATH: /home/spadmin/US4-DOCKER/fileUploads
+      FILE_UPLOAD_PATH: /home/fileUploads
   us4-fe:
     image: us4-docker_us4-fe
     restart: always

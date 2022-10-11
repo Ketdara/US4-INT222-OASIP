@@ -173,7 +173,9 @@ public class EventService {
             }
         }
         EventWithValidateDTO selectedEvent = modelMapper.map(event, EventWithValidateDTO.class);
-        selectedEvent.setFile(getFile(fileUploadPath + selectedEvent.getFileName()));
+        if(selectedEvent.getFileName() != null) {
+            selectedEvent.setFile(getFile(fileUploadPath + selectedEvent.getFileName()));
+        }
         return selectedEvent;
     }
 
@@ -191,8 +193,10 @@ public class EventService {
         if(userRole.equals("student") && !newEventDTO.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email does not match with current user email");
         if(userRole.equals("lecturer")) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
 
-        postFile(file);
-        newEventDTO.setFileName(file.getOriginalFilename());
+        if(file != null){
+            postFile(file);
+            newEventDTO.setFileName(file.getOriginalFilename());
+        }
 
         newEventDTO.setEventStartTime(dateTimeManager.ISOStringToDateString(newEventDTO.getEventStartTime()));
         trimEventField(newEventDTO);
