@@ -24,7 +24,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://us4-db:3306/us4db
       SERVER_PORT: 8443
       SERVER_ERROR_INCLUDE-MESSAGE: always
-      JWT_SECRET: javainuse
+      JWT_SECRET: int222us4
+      JWT_REFRESHSECRET: us4refresh
+      JWT_EXPIRATIONINMS: 1800000
+      JWT_REFRESHEXPIRATIONINMS: 86400000
+      FILE_UPLOAD_PATH: C:/int222/
   us4-fe:
     build: ../../../1_Front-end/US4-Front-end
     ports:

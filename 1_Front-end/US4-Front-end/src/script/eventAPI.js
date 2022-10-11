@@ -82,6 +82,14 @@ export const eventAPI = {
       let event = await res.json();
       this.UTCToLocal(event);
       console.log('[getEventById] Successful');
+
+      // var blob = new Blob([new Uint8Array(event.file)]);
+      // console.log(URL.createObjectURL(blob));
+      // event.url = URL.createObjectURL(blob);
+
+      var blob = this.b64toBlob(event.file, ' ');
+      event.url = URL.createObjectURL(blob);
+
       return event;
     }
     if(res.status === 401 || res.status === 403 || res.status === 404){
@@ -98,16 +106,30 @@ export const eventAPI = {
 
   postEvent: async function (event) {
     this.localToUTC(event);
-    const res = await fetch(import.meta.env.VITE_BASE_URL + 'events', { method: 'POST',
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        bookingName: event.bookingName,
-        bookingEmail: event.bookingEmail,
-        eventCategory: event.eventCategory,
-        eventStartTime: event.eventStartTime === "1970-01-01 00:00:00" ? null : event.eventStartTime,
-        eventNotes: event.eventNotes
-      })
+    const eventData = JSON.stringify({
+      bookingName: event.bookingName,
+      bookingEmail: event.bookingEmail,
+      eventCategory: event.eventCategory,
+      eventStartTime: event.eventStartTime === "1970-01-01 00:00:00" ? null : event.eventStartTime,
+      eventNotes: event.eventNotes
     })
+    const formData = new FormData();
+    formData.append('event', eventData);
+    formData.append('file', event.attachment);
+
+    const res = await fetch(import.meta.env.VITE_BASE_URL + 'events', { method: 'POST',
+    //   headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, 'content-type': 'application/json' },
+    //   body: JSON.stringify({
+    //     bookingName: event.bookingName,
+    //     bookingEmail: event.bookingEmail,
+    //     eventCategory: event.eventCategory,
+    //     eventStartTime: event.eventStartTime === "1970-01-01 00:00:00" ? null : event.eventStartTime,
+    //     eventNotes: event.eventNotes
+    //   })
+    // })
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`},
+    body: formData
+  })
 
     if(res.status === 201){
       console.log('[postEvent] Successful');
@@ -176,4 +198,25 @@ export const eventAPI = {
     alert('Error occurred when deleting event');
     return false;
   },
+
+  b64toBlob: function (b64Data, contentType) {
+    var sliceSize = 512;
+    const byteCharacters = atob(b64Data);
+    const byteArrays = [];
+  
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      const slice = byteCharacters.slice(offset, offset + sliceSize);
+  
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+  
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+  
+    const blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+  }
 };

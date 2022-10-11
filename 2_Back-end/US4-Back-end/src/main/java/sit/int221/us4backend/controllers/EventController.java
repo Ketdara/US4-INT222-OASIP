@@ -1,10 +1,19 @@
 package sit.int221.us4backend.controllers;
 
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import sit.int221.us4backend.dtos.EventPartialDTO;
 import sit.int221.us4backend.dtos.EventTimeframeDTO;
 import sit.int221.us4backend.dtos.EventWithValidateDTO;
@@ -18,6 +27,13 @@ import sit.int221.us4backend.utils.EmailUtil;
 import sit.int221.us4backend.utils.JwtTokenUtil;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.Array;
 import java.util.List;
 
 //@CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -34,6 +50,87 @@ public class EventController {
     private EmailUtil emailUtil;
     @Autowired
     private DateTimeManager dateTimeManager;
+    @Autowired
+    private ModelMapper modelMapper;
+
+//    private static String UPLOADED_FOLDER = "C:/int222/";
+
+
+//    @PostMapping("/upload") // //new annotation since 4.3
+//    public String singleFileUpload(@RequestParam("file") MultipartFile file,
+//                                   RedirectAttributes redirectAttributes) {
+//
+//        if (file.isEmpty()) {
+//            redirectAttributes.addFlashAttribute("message", "Please select a file to upload");
+//            return "redirect:uploadStatus";
+//        }
+//
+//        try {
+//
+//            // Get the file and save it somewhere
+//            byte[] bytes = file.getBytes();
+//            Path path = Paths.get(fileUploadPath + file.getOriginalFilename());
+////            Path path = Paths.get(file.getOriginalFilename());
+//            Files.write(path, bytes);
+//
+//            redirectAttributes.addFlashAttribute("message",
+//                    "You successfully uploaded '" + file.getOriginalFilename() + "'");
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return "redirect:/uploadStatus";
+//    }
+
+//    @PostMapping("/upload")
+//    public byte[] singleFileUpload(@RequestParam("file") MultipartFile file, @RequestParam("event") String event) {
+//
+//        byte[] bytesReturn = new byte[0];
+//
+//
+//        try{
+//            JSONParser parser = new JSONParser();
+//            JSONObject json = (JSONObject) parser.parse(event);
+//            EventWithValidateDTO newEventDTO = modelMapper.map(json, EventWithValidateDTO.class);
+//            System.out.println(newEventDTO.getBookingName());
+//            System.out.println(newEventDTO.getBookingEmail());
+//            System.out.println(newEventDTO.getEventStartTime());
+//            System.out.println(newEventDTO.getEventCategory());
+//            System.out.println(newEventDTO.getEventDuration());
+//            System.out.println(newEventDTO.getEventNotes());
+//
+//            byte[] bytes = file.getBytes();
+//            Path path = Paths.get(fileUploadPath + file.getOriginalFilename());
+//            Files.write(path, bytes);
+//            bytesReturn = Files.readAllBytes(path);
+//
+//        } catch(Exception e){
+//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error when saving file");
+//        }
+//        return bytesReturn;
+//
+//    }
+
+//    @GetMapping("/upload")
+//    public byte[] singleFileUpload() {
+//
+//        byte[] bytesReturn = new byte[0];
+//        try{
+//            Path path = Paths.get(fileUploadPath + "h.jpg");
+//            bytesReturn = Files.readAllBytes(path);
+//
+//        } catch(Exception e){
+//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error when saving file");
+//        }
+//        return bytesReturn;
+//
+//    }
+
+
+//    public File loadEmployeesWithSpringInternalClass()
+//            throws FileNotFoundException {
+//        return ResourceUtils.getFile("classpath:data/employees.dat");
+//    }
 
     @GetMapping("")
     public Page<EventPartialDTO> getEventsAll(
@@ -107,7 +204,8 @@ public class EventController {
     @GetMapping("/{event_id}")
     public EventWithValidateDTO getEventById(
             @PathVariable Integer event_id,
-            HttpServletRequest request) {
+            HttpServletRequest request,
+            HttpServletResponse response) {
 
         jwtTokenUtil.validateTokenFromHeader(request);
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
@@ -116,10 +214,44 @@ public class EventController {
         return eventService.getEventDTOById(event_id, user);
     }
 
+//    @PostMapping("")
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public void postEvent(
+//            @RequestBody EventWithValidateDTO newEventDTO,
+//            HttpServletRequest request) {
+//
+//        String tokenEmail;
+//        User user;
+//
+//        try {
+//            jwtTokenUtil.validateTokenFromHeader(request);
+//            tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
+//            user = getUserFromEmail(tokenEmail);
+//        } catch(ResponseStatusException e){
+//            user = new User();
+//            user.setRole("guest");
+//        }
+//
+//        Event postedEvent = eventService.postEventDTO(newEventDTO, user);
+//        String to = postedEvent.getBookingEmail();
+//        String bookingName = postedEvent.getBookingName();
+//        String eventCategory = postedEvent.getEventCategory().getEventCategoryName();
+//        String when = dateTimeManager.getEmailDate(postedEvent.getEventStartTime(), postedEvent.getEventDuration());
+//        String eventNotes = postedEvent.getEventNotes();
+//
+//        String subject = "[OASIP] " + eventCategory + " @ " + when;
+//        String text = "Booking Name: PBI 36 " + bookingName
+//                + "\nEvent Category: " + eventCategory
+//                + "\nWhen: " + when
+//                + "\nEvent Notes: " + eventNotes;
+//        emailUtil.sendRealEmail(to, subject, text);
+//    }
+
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public void postEvent(
-            @RequestBody EventWithValidateDTO newEventDTO,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("event") String event,
             HttpServletRequest request) {
 
         String tokenEmail;
@@ -134,7 +266,16 @@ public class EventController {
             user.setRole("guest");
         }
 
-        Event postedEvent = eventService.postEventDTO(newEventDTO, user);
+        EventWithValidateDTO newEventDTO = null;
+        try {
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(event);
+            newEventDTO = modelMapper.map(json, EventWithValidateDTO.class);
+        } catch(Exception e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+
+        Event postedEvent = eventService.postEventDTO(newEventDTO, user, file);
         String to = postedEvent.getBookingEmail();
         String bookingName = postedEvent.getBookingName();
         String eventCategory = postedEvent.getEventCategory().getEventCategoryName();

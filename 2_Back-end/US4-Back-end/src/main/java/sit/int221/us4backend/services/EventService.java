@@ -2,11 +2,14 @@ package sit.int221.us4backend.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.EventTimeframeDTO;
 import sit.int221.us4backend.dtos.EventWithValidateDTO;
@@ -21,6 +24,10 @@ import sit.int221.us4backend.utils.DateTimeManager;
 import sit.int221.us4backend.utils.EventValidator;
 import sit.int221.us4backend.utils.ListMapper;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @Service
@@ -165,8 +172,9 @@ public class EventService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
             }
         }
-
-        return modelMapper.map(event, EventWithValidateDTO.class);
+        EventWithValidateDTO selectedEvent = modelMapper.map(event, EventWithValidateDTO.class);
+        selectedEvent.setFile(getFile(fileUploadPath + selectedEvent.getFileName()));
+        return selectedEvent;
     }
 
     public EventWithValidateDTO getEventDTOByIdShort(Integer event_id) {
@@ -176,12 +184,15 @@ public class EventService {
         return modelMapper.map(event, EventWithValidateDTO.class);
     }
 
-    public Event postEventDTO(EventWithValidateDTO newEventDTO, User user) {
+    public Event postEventDTO(EventWithValidateDTO newEventDTO, User user, MultipartFile file) {
         callEventValidator(newEventDTO, false);
         String userRole = user.getRole();
 
         if(userRole.equals("student") && !newEventDTO.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email does not match with current user email");
         if(userRole.equals("lecturer")) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
+
+        postFile(file);
+        newEventDTO.setFileName(file.getOriginalFilename());
 
         newEventDTO.setEventStartTime(dateTimeManager.ISOStringToDateString(newEventDTO.getEventStartTime()));
         trimEventField(newEventDTO);
@@ -260,5 +271,43 @@ public class EventService {
 
         Page<Event> eventPage = eventRepository.findAllByBookingEmail(email, PageRequest.of(page, pageSize, sort));
         return mapPageAndFormatStartTime(eventPage);
+    }
+
+
+    @Value("${file.upload.path}")
+    private String fileUploadPath;
+
+    private String postFile(MultipartFile file) {
+        String pathString = null;
+        try{
+            byte[] bytes = file.getBytes();
+            Path path = Paths.get(fileUploadPath + file.getOriginalFilename());
+            Files.write(path, bytes);
+            pathString = path.toString();
+        } catch(Exception e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+        return pathString;
+    }
+
+//    private File getFile(String pathString) {
+//        File file = null;
+//        try{
+//            file = ResourceUtils.getFile(pathString);
+//        } catch(Exception e){
+//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+//        }
+//        return file;
+//    }
+
+    private byte[] getFile(String pathString) {
+        byte[] file = null;
+        try {
+            Path path = Paths.get(pathString);
+            file = Files.readAllBytes(path);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+        return file;
     }
 }

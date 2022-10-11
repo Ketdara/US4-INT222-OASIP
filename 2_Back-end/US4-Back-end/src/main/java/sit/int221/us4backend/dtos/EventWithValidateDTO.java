@@ -7,6 +7,7 @@ import lombok.Setter;
 import sit.int221.us4backend.constraints.PastString;
 
 import javax.validation.constraints.*;
+import java.io.File;
 
 @Getter
 @Setter
@@ -34,4 +35,9 @@ public class EventWithValidateDTO {
 
     @Size(max = 500, message = "Event Notes cannot exceed 500 characters; ")
     private String eventNotes;
+
+    @Size(max = 500, message = "File Name cannot exceed 500 characters; ")
+    private String fileName;
+
+    private byte[] file;
 }

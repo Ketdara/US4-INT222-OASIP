@@ -18,7 +18,8 @@ const props = defineProps({
       bookingEmail: null,
       eventCategory: null,
       eventStartTime: null,
-      eventNotes: null
+      eventNotes: null,
+      attachment: []
     }
   },
   currentRole: {
@@ -43,7 +44,8 @@ const newEvent = computed(() => {
     bookingEmail: props.currentRole !== null && props.currentRole.toString().match('student') ? props.currentEmail : props.event.bookingEmail,
     eventCategory: newEventCategory.value ? newEventCategory.value : null,
     eventStartTime: props.event.eventStartTime,
-    eventNotes: props.event.eventNotes ? props.event.eventNotes : ""
+    eventNotes: props.event.eventNotes ? props.event.eventNotes : "",
+    attachment: props.event.attachment ? props.event.attachment : null
   }
 });
 
@@ -53,8 +55,31 @@ const checkInputInvalid = () => {
   if(newEvent.value.eventCategory === null) return true;
   if(newEvent.value.eventStartTime === null) return true;
   if(newEvent.value.eventNotes.trim().length > 500) return true;
+  if(newEvent.value.attachment.size > 10485760) return true;
   return false;
 }
+
+const selectFile = (event) => {
+  if(event.target.files[0].size > 10485760) {
+    alert("File size exceeds 10 MB limit");
+    return false;
+  }
+  if(event.target.files[0].name.length > 500) {
+    alert("File name exceeds 500 character limit");
+    return false;
+  }
+  props.event.attachment = event.target.files[0];
+  var blob = new Blob([props.event.attachment]);
+  url.value = URL.createObjectURL(blob);
+  console.log(blob);
+  
+  console.log(props.event.attachment);
+  console.log(props.event.attachment.name.split('.').pop());
+  return true;
+}
+
+const url = ref("")
+
 </script>
 
 <template>
@@ -67,6 +92,7 @@ const checkInputInvalid = () => {
         <li class="m-1">Booking Email:</li>
         <li class="m-1">Event Start Time:</li>
         <li class="m-1">Event Notes:</li>
+        <li class="m-1">Attachment(10 MB):</li>
       </ul>
     </div>
     <div class="columnB">
@@ -81,7 +107,9 @@ const checkInputInvalid = () => {
         <li class="m-1" v-else><input class="input" type="text" v-model="event.bookingEmail"></li>
         <li class="m-1"><input class="input" type="datetime-local" v-model="event.eventStartTime"></li>
         <li class="m-1"><input class="input" type="text" v-model="event.eventNotes"></li>
+        <li class="m-1 text-white"><span class="fileSelect"><input type="file" @change="selectFile"><span v-if="event.attachment.name !== undefined">{{event.attachment.name.length > 22 ? event.attachment.name.slice(0, 10) + "..." + event.attachment.name.slice(-10) : event.attachment.name}}</span></span></li>
       </ul>
+      <!-- <a href="http://localhost:3000/30b230d5-9e83-487b-b340-4aee72e159dd" download="hello.jpg">Here {{event.url}}</a> -->
     </div>
     <div class="columnC text-white">
       <ul>
@@ -122,5 +150,12 @@ const checkInputInvalid = () => {
   width: 260px;
   border-radius: 6px;
 }
-
+input[type='file'] {
+  color: transparent;
+  width: 115px;
+  overflow:hidden;
+}
+.fileSelect {
+  white-space: nowrap;
+}
 </style>

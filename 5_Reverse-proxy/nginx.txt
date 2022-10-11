@@ -10,9 +10,11 @@ http {
         server us4-be:8443;
     }
 
+    sendfile        on;
+
     server {
 	listen       443 ssl;
-	server_name  intproj21.sit.kmutt.ac.th;
+	server_name  intproj21.sit.kmutt.ac.th/us4;
 
 	ssl on;
 	ssl_certificate ../ssl/us4.crt;
@@ -47,26 +49,7 @@ http {
 
     server {
 	listen 80;
-	server_name intproj21.sit.kmutt.ac.th;
-
-	location / {
-	    add_header Access-Control-Allow-Origin "https://intproj21.sit.kmutt.ac.th";
-	    proxy_pass http://front-end;
-	    proxy_redirect     off;
-	    proxy_set_header   Host $host;
-	    proxy_set_header   X-Real-IP $remote_addr;
-	    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-	    proxy_set_header   X-Forwarded-Host $server_name;
-	}
-
-	location /api {
-	    add_header Access-Control-Allow-Origin "https://intproj21.sit.kmutt.ac.th";
-	    proxy_pass http://back-end;
-	    proxy_redirect     off;
-	    proxy_set_header   Host $host;
-	    proxy_set_header   X-Real-IP $remote_addr;
-	    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-	    proxy_set_header   X-Forwarded-Host $server_name;
-	}
+	server_name intproj21.sit.kmutt.ac.th/us4;
+	return 302 https://$server_name$request_uri;
     }
 }

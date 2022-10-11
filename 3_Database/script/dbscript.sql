@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS `us4db`.`event` (
   `eventStartTime` DATETIME NOT NULL,
   `eventDuration` INT NOT NULL,
   `eventNotes` VARCHAR(2500) NULL,
+  `fileName` VARCHAR(500) NULL,
   PRIMARY KEY (`event_id`, `eventCategory_id`),
   INDEX `_idx` (`eventCategory_id` ASC) VISIBLE,
   CONSTRAINT ``

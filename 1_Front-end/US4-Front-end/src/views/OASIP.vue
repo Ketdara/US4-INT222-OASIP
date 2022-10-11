@@ -114,7 +114,8 @@ var postUI = ref({
   bookingEmail: null,
   eventCategory: null,
   eventStartTime: null,
-  eventNotes: null
+  eventNotes: null,
+  attachment: []
 })
 
 const resetPostUI = () => {

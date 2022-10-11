@@ -32,4 +32,7 @@ public class Event {
 
     @Column(name = "eventNotes", length = 2500)
     private String eventNotes;
+
+    @Column(name = "fileName", length = 500)
+    private String fileName;
 }
