@@ -91,6 +91,7 @@ const postEvent = async (event) => {
 const putEvent = async (event) => {
   if(await eventAPI.putEvent(event)) {
     updateEvents();
+    await getEventById(event.id);
     isEditing.value = false;
   }
 }

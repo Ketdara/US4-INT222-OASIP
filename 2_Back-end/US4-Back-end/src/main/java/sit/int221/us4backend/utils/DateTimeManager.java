@@ -23,8 +23,15 @@ public class DateTimeManager {
 
     public String dateStringToISOString(String dateString) {
         if(dateString == null) return null;
-        Date date = dateStringToDate(dateString);
-        return ISOFormat.format(date);
+
+        String ISOdate = dateString;
+        try {
+            Date date = dateStringToDate(dateString);
+            ISOdate = ISOFormat.format(date);
+        }catch(Exception e) {
+            System.out.println("format is already changed: " + dateString);
+        }
+        return ISOdate;
     }
 
     public String ISOStringToDateString(String ISOString) {

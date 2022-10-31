@@ -53,85 +53,6 @@ public class EventController {
     @Autowired
     private ModelMapper modelMapper;
 
-//    private static String UPLOADED_FOLDER = "C:/int222/";
-
-
-//    @PostMapping("/upload") // //new annotation since 4.3
-//    public String singleFileUpload(@RequestParam("file") MultipartFile file,
-//                                   RedirectAttributes redirectAttributes) {
-//
-//        if (file.isEmpty()) {
-//            redirectAttributes.addFlashAttribute("message", "Please select a file to upload");
-//            return "redirect:uploadStatus";
-//        }
-//
-//        try {
-//
-//            // Get the file and save it somewhere
-//            byte[] bytes = file.getBytes();
-//            Path path = Paths.get(fileUploadPath + file.getOriginalFilename());
-////            Path path = Paths.get(file.getOriginalFilename());
-//            Files.write(path, bytes);
-//
-//            redirectAttributes.addFlashAttribute("message",
-//                    "You successfully uploaded '" + file.getOriginalFilename() + "'");
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return "redirect:/uploadStatus";
-//    }
-
-//    @PostMapping("/upload")
-//    public byte[] singleFileUpload(@RequestParam("file") MultipartFile file, @RequestParam("event") String event) {
-//
-//        byte[] bytesReturn = new byte[0];
-//
-//
-//        try{
-//            JSONParser parser = new JSONParser();
-//            JSONObject json = (JSONObject) parser.parse(event);
-//            EventWithValidateDTO newEventDTO = modelMapper.map(json, EventWithValidateDTO.class);
-//            System.out.println(newEventDTO.getBookingName());
-//            System.out.println(newEventDTO.getBookingEmail());
-//            System.out.println(newEventDTO.getEventStartTime());
-//            System.out.println(newEventDTO.getEventCategory());
-//            System.out.println(newEventDTO.getEventDuration());
-//            System.out.println(newEventDTO.getEventNotes());
-//
-//            byte[] bytes = file.getBytes();
-//            Path path = Paths.get(fileUploadPath + file.getOriginalFilename());
-//            Files.write(path, bytes);
-//            bytesReturn = Files.readAllBytes(path);
-//
-//        } catch(Exception e){
-//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error when saving file");
-//        }
-//        return bytesReturn;
-//
-//    }
-
-//    @GetMapping("/upload")
-//    public byte[] singleFileUpload() {
-//
-//        byte[] bytesReturn = new byte[0];
-//        try{
-//            Path path = Paths.get(fileUploadPath + "h.jpg");
-//            bytesReturn = Files.readAllBytes(path);
-//
-//        } catch(Exception e){
-//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error when saving file");
-//        }
-//        return bytesReturn;
-//
-//    }
-
-
-//    public File loadEmployeesWithSpringInternalClass()
-//            throws FileNotFoundException {
-//        return ResourceUtils.getFile("classpath:data/employees.dat");
-//    }
-
     @GetMapping("")
     public Page<EventPartialDTO> getEventsAll(
             @RequestParam(defaultValue = "0") Integer page,
@@ -214,46 +135,14 @@ public class EventController {
         return eventService.getEventDTOById(event_id, user);
     }
 
-//    @PostMapping("")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public void postEvent(
-//            @RequestBody EventWithValidateDTO newEventDTO,
-//            HttpServletRequest request) {
-//
-//        String tokenEmail;
-//        User user;
-//
-//        try {
-//            jwtTokenUtil.validateTokenFromHeader(request);
-//            tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-//            user = getUserFromEmail(tokenEmail);
-//        } catch(ResponseStatusException e){
-//            user = new User();
-//            user.setRole("guest");
-//        }
-//
-//        Event postedEvent = eventService.postEventDTO(newEventDTO, user);
-//        String to = postedEvent.getBookingEmail();
-//        String bookingName = postedEvent.getBookingName();
-//        String eventCategory = postedEvent.getEventCategory().getEventCategoryName();
-//        String when = dateTimeManager.getEmailDate(postedEvent.getEventStartTime(), postedEvent.getEventDuration());
-//        String eventNotes = postedEvent.getEventNotes();
-//
-//        String subject = "[OASIP] " + eventCategory + " @ " + when;
-//        String text = "Booking Name: PBI 36 " + bookingName
-//                + "\nEvent Category: " + eventCategory
-//                + "\nWhen: " + when
-//                + "\nEvent Notes: " + eventNotes;
-//        emailUtil.sendRealEmail(to, subject, text);
-//    }
-
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public void postEvent(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("event") String event,
+            @RequestParam(required = false) MultipartFile file,
+            @RequestParam String event,
             HttpServletRequest request) {
 
+//        if(file.getSize() > 10485760) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File size exceeds 10 MB");
         String tokenEmail;
         User user;
 
@@ -290,9 +179,24 @@ public class EventController {
         emailUtil.sendRealEmail(to, subject, text);
     }
 
+//    @PutMapping("/{event_id}")
+//    public void putEvent(
+//            @RequestBody EventWithValidateDTO newEventDTO,
+//            @PathVariable Integer event_id,
+//            HttpServletRequest request) {
+//
+//        jwtTokenUtil.validateTokenFromHeader(request);
+//        String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
+//        User user = getUserFromEmail(tokenEmail);
+//
+//        eventService.putEventDTO(newEventDTO, event_id, user);
+//    }
+
     @PutMapping("/{event_id}")
     public void putEvent(
-            @RequestBody EventWithValidateDTO newEventDTO,
+            @RequestParam(required = false) MultipartFile file,
+            @RequestParam String event,
+            @RequestParam(defaultValue = "false") boolean isFileUpdate,
             @PathVariable Integer event_id,
             HttpServletRequest request) {
 
@@ -300,7 +204,16 @@ public class EventController {
         String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
         User user = getUserFromEmail(tokenEmail);
 
-        eventService.putEventDTO(newEventDTO, event_id, user);
+        EventWithValidateDTO newEventDTO = null;
+        try {
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(event);
+            newEventDTO = modelMapper.map(json, EventWithValidateDTO.class);
+        } catch(Exception e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+
+        eventService.putEventDTO(newEventDTO, event_id, user, isFileUpdate, file);
     }
 
     @DeleteMapping("/{event_id}")

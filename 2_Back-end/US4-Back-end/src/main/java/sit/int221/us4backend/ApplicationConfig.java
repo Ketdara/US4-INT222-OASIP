@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import sit.int221.us4backend.utils.*;
@@ -77,7 +78,7 @@ public class ApplicationConfig {
     }
 
     @Bean(name = "multipartResolver")
-    public CommonsMultipartResolver multipartResolver() {
+    public MultipartResolver multipartResolver() {
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
         multipartResolver.setMaxUploadSize(10485760);
         return multipartResolver;

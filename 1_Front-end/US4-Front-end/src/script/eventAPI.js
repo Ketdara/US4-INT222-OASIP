@@ -85,6 +85,8 @@ export const eventAPI = {
 
       var blob = this.b64toBlob(event.file, ' ');
       event.url = URL.createObjectURL(blob);
+      event.attachment = {name: event.fileName};
+      console.log(event);
 
       return event;
     }
@@ -146,17 +148,32 @@ export const eventAPI = {
   putEvent: async function (event) {
     this.localToUTC(event);
     // console.log(event);
-    const res = await fetch(import.meta.env.VITE_BASE_URL + `events/${event.id}`, { method: 'PUT',
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        id: event.id,
-        bookingName: event.bookingName,
-        bookingEmail: event.bookingEmail,
-        eventCategory: event.eventCategory,
-        eventStartTime: event.eventStartTime === "1970-01-01 00:00:00" ? null : event.eventStartTime,
-        eventNotes: event.eventNotes
-      })
+    const eventData = JSON.stringify({
+      id: event.id,
+      bookingName: event.bookingName,
+      bookingEmail: event.bookingEmail,
+      eventCategory: event.eventCategory,
+      eventStartTime: event.eventStartTime === "1970-01-01 00:00:00" ? null : event.eventStartTime,
+      eventNotes: event.eventNotes
     })
+    const formData = new FormData();
+    formData.append('event', eventData);
+    formData.append('file', event.attachment);
+    formData.append('isFileUpdate', true);
+
+    const res = await fetch(import.meta.env.VITE_BASE_URL + `events/${event.id}`, { method: 'PUT',
+    //   headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, 'content-type': 'application/json' },
+    //   body: JSON.stringify({
+    //     bookingName: event.bookingName,
+    //     bookingEmail: event.bookingEmail,
+    //     eventCategory: event.eventCategory,
+    //     eventStartTime: event.eventStartTime === "1970-01-01 00:00:00" ? null : event.eventStartTime,
+    //     eventNotes: event.eventNotes
+    //   })
+    // })
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`},
+    body: formData
+  })
 
     if(res.status === 200){
       console.log('[putEvent] Successful');

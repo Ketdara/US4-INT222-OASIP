@@ -174,7 +174,7 @@ public class EventService {
         }
         EventWithValidateDTO selectedEvent = modelMapper.map(event, EventWithValidateDTO.class);
         if(selectedEvent.getFileName() != null) {
-            selectedEvent.setFile(getFile(fileUploadPath + selectedEvent.getFileName()));
+            selectedEvent.setFile(getFile(selectedEvent.getFileName(), event_id));
         }
         return selectedEvent;
     }
@@ -193,19 +193,30 @@ public class EventService {
         if(userRole.equals("student") && !newEventDTO.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email does not match with current user email");
         if(userRole.equals("lecturer")) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
 
-        if(file != null){
-            postFile(file);
-            newEventDTO.setFileName(file.getOriginalFilename());
-        }
-
         newEventDTO.setEventStartTime(dateTimeManager.ISOStringToDateString(newEventDTO.getEventStartTime()));
         trimEventField(newEventDTO);
         Event newEvent = modelMapper.map(newEventDTO, Event.class);
+        // generate id
+        Event createdEvent = eventRepository.saveAndFlush(newEvent);
 
-        return eventRepository.saveAndFlush(newEvent);
+        // save file + save id_filename as filename
+        if(file != null){
+            postFile(file, createdEvent.getId());
+            newEvent.setFileName(file.getOriginalFilename());
+
+            // update filename in DB
+            Event event = eventRepository.findById(createdEvent.getId()).map(oldEvent -> mapEvent(oldEvent, newEvent))
+                    .orElseGet(() ->
+                    {
+                        newEvent.setId(createdEvent.getId());
+                        return newEvent;
+                    });
+
+            return eventRepository.saveAndFlush(event);
+        }else return createdEvent;
     }
 
-    public Event putEventDTO(EventWithValidateDTO newEventDTO, Integer event_id, User user) {
+    public Event putEventDTO(EventWithValidateDTO newEventDTO, Integer event_id, User user, boolean isFileUpdate, MultipartFile file) {
         callEventValidator(newEventDTO, true);
         String userRole = user.getRole();
 
@@ -214,14 +225,30 @@ public class EventService {
 
         newEventDTO.setEventStartTime(dateTimeManager.ISOStringToDateString(newEventDTO.getEventStartTime()));
         trimEventField(newEventDTO);
+
+        EventWithValidateDTO oldEventDTO = getEventDTOByIdShort(newEventDTO.getId());
+        if(isFileUpdate == true) {
+            if(oldEventDTO.getFileName() != null) {
+                deleteFile(oldEventDTO.getFileName(), event_id);
+            }
+
+            if(file != null){
+                postFile(file, event_id);
+                newEventDTO.setFileName(file.getOriginalFilename());
+                System.out.println("1 - " + file.getOriginalFilename());
+            }
+        }
+
         Event newEvent = modelMapper.map(newEventDTO, Event.class);
+        System.out.println("2 - " + newEvent.getFileName());
         Event event = eventRepository.findById(event_id).map(oldEvent -> mapEvent(oldEvent, newEvent))
                 .orElseGet(() ->
                 {
                     newEvent.setId(event_id);
                     return newEvent;
                 });
-        return eventRepository.saveAndFlush(event);
+
+        return  eventRepository.saveAndFlush(event);
     }
 
     private EventWithValidateDTO trimEventField(EventWithValidateDTO newEventDTO) {
@@ -234,6 +261,7 @@ public class EventService {
     private Event mapEvent(Event oldEvent, Event newEvent) {
         oldEvent.setEventStartTime(newEvent.getEventStartTime());
         oldEvent.setEventNotes(newEvent.getEventNotes());
+        oldEvent.setFileName(newEvent.getFileName());
         return oldEvent;
     }
 
@@ -244,9 +272,11 @@ public class EventService {
         if(userRole.equals("student") && !event.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot delete this event");
         if(userRole.equals("lecturer")) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
 
-        eventRepository.findById(event_id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event " + event_id + " not found or does not exist"));
+
         eventRepository.deleteById(event_id);
+        if(event.getFileName() != null) {
+            deleteFile(event.getFileName(), event_id);
+        }
     }
 
     private void callEventValidator(EventWithValidateDTO newEventDTO, boolean isPut) {
@@ -281,11 +311,11 @@ public class EventService {
     @Value("${file.upload.path}")
     private String fileUploadPath;
 
-    private String postFile(MultipartFile file) {
+    private String postFile(MultipartFile file, Integer event_id) {
         String pathString = null;
         try{
             byte[] bytes = file.getBytes();
-            Path path = Paths.get(fileUploadPath + file.getOriginalFilename());
+            Path path = Paths.get(fileUploadPath + event_id.toString() + "_" + file.getOriginalFilename());
             Files.write(path, bytes);
             pathString = path.toString();
         } catch(Exception e){
@@ -294,24 +324,23 @@ public class EventService {
         return pathString;
     }
 
-//    private File getFile(String pathString) {
-//        File file = null;
-//        try{
-//            file = ResourceUtils.getFile(pathString);
-//        } catch(Exception e){
-//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-//        }
-//        return file;
-//    }
-
-    private byte[] getFile(String pathString) {
+    private byte[] getFile(String fileName, Integer event_id) {
         byte[] file = null;
         try {
-            Path path = Paths.get(pathString);
+            Path path = Paths.get(fileUploadPath + event_id.toString() + "_" + fileName);
             file = Files.readAllBytes(path);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
         return file;
+    }
+
+    private void deleteFile(String fileName, Integer event_id) {
+        try {
+            Path path = Paths.get(fileUploadPath + event_id.toString() + "_" + fileName);
+            Files.deleteIfExists(path);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 }

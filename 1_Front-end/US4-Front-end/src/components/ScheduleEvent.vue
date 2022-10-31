@@ -101,7 +101,7 @@ const url = ref("")
         <li class="m-1" v-else><input class="input" type="text" v-model="event.bookingEmail"></li>
         <li class="m-1"><input class="input" type="datetime-local" v-model="event.eventStartTime"></li>
         <li class="m-1"><input class="input" type="text" v-model="event.eventNotes"></li>
-        <li class="m-1 text-white"><span class="fileSelect"><input type="file" @change="selectFile"><span v-if="event.attachment.name !== undefined && event.attachment.name !== null">{{event.attachment.name.length > 22 ? event.attachment.name.slice(0, 10) + "..." + event.attachment.name.slice(-10) : event.attachment.name}}</span></span></li>
+        <li class="m-1 text-white"><span class="fileSelect"><input type="file" @change="selectFile"><span v-if="event.attachment !== null && event.attachment.name !== undefined && event.attachment.name !== null">{{event.attachment.name.length > 22 ? event.attachment.name.slice(0, 10) + "..." + event.attachment.name.slice(-10) : event.attachment.name}}</span></span></li>
       </ul>
     </div>
     <div class="columnC text-white">

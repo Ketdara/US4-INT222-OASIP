@@ -12,10 +12,26 @@ const props = defineProps({
       eventCategory: null,
       eventStartTime: null,
       eventDuration: null,
-      eventNotes: null
+      eventNotes: null,
+      attachment: null
     }
   }
 })
+
+const selectFile = (event) => {
+  if(event.target.files[0].size > 10485760) {
+    alert("File size exceeds 10 MB limit");
+    return false;
+  }
+  if(event.target.files[0].name.length > 500) {
+    alert("File name exceeds 500 character limit");
+    return false;
+  }
+  props.event.attachment = event.target.files[0];
+  return true;
+}
+
+const url = ref("")
 
 const startTimeInput = ref(new Date(new Date(props.event.eventStartTime).getTime() + 7*3600000).toISOString().slice(0, -8))
 
@@ -44,6 +60,9 @@ const putConfirmation = () => {
     <ul class="my-4">
       <li class="m-2 font-bold text-l">Additional Information:</li>
       <li class="m-2">▸ <input type="text" v-model="event.eventNotes" class="input"><span class="ml-3 text-black" v-if="event.eventNotes !== null"><span v-if="event.eventNotes.trim().length > 0" :style="event.eventNotes.trim().length <= 500 ? { color: 'black' } : { color: 'red' }">{{event.eventNotes.trim().length}}/500</span></span></li>
+      <!-- <li class="m-1"><span class="fileSelect"><input type="file" @change="selectFile"><span v-if="event.fileName !== undefined && event.fileName !== null">{{event.fileName.length > 22 ? event.fileName.slice(0, 10) + "..." + event.fileName.slice(-10) : event.fileName}}</span></span></li> -->
+      <li class="m-1"><span class="fileSelect"><input type="file" @change="selectFile"><span v-if="event.attachment !== null && event.attachment.name !== undefined && event.attachment.name !== null">{{event.attachment.name.length > 22 ? event.attachment.name.slice(0, 10) + "..." + event.attachment.name.slice(-10) : event.attachment.name}}</span></span></li>
+
     </ul>
     <div class="float-right">
       <button
@@ -66,5 +85,13 @@ const putConfirmation = () => {
 .input {
   width: 240px;
   border-radius: 6px;
+}
+.fileSelect {
+  white-space: nowrap;
+}
+input[type='file'] {
+  color: transparent;
+  width: 115px;
+  overflow:hidden;
 }
 </style>
