@@ -86,7 +86,6 @@ const url = ref("")
         <li class="m-1">Booking Email:</li>
         <li class="m-1">Event Start Time:</li>
         <li class="m-1">Event Notes:</li>
-        <li class="m-1">Attachment(10 MB):</li>
       </ul>
     </div>
     <div class="columnB">
@@ -101,7 +100,7 @@ const url = ref("")
         <li class="m-1" v-else><input class="input" type="text" v-model="event.bookingEmail"></li>
         <li class="m-1"><input class="input" type="datetime-local" v-model="event.eventStartTime"></li>
         <li class="m-1"><input class="input" type="text" v-model="event.eventNotes"></li>
-        <li class="m-1 text-white"><span class="fileSelect"><input type="file" @change="selectFile"><span v-if="event.attachment !== null && event.attachment.name !== undefined && event.attachment.name !== null">{{event.attachment.name.length > 22 ? event.attachment.name.slice(0, 10) + "..." + event.attachment.name.slice(-10) : event.attachment.name}}</span></span></li>
+
       </ul>
     </div>
     <div class="columnC text-white">
@@ -114,12 +113,26 @@ const url = ref("")
       </ul>
     </div>
   </div>
-  <div class="m-1">
+  <div class="mx-1">
+    <ul>
+      <li class="text-white">
+        <span class="columnA">Attachment(10 MB):</span>
+        <span class="fileSelect"><input type="file" @change="selectFile">
+          <span v-if="event.attachment !== null && event.attachment.name !== undefined && event.attachment.name !== null">
+            {{event.attachment.name.length > 22 ? event.attachment.name.slice(0, 10) + "..." + event.attachment.name.slice(-10) : event.attachment.name}}
+            <button type="button" class="close" aria-label="Close" @click="event.attachment = null">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </span>
+        </span>
+      </li>
+    </ul>
+
     <button 
     :disabled="checkInputInvalid()"
     :style="!checkInputInvalid() ? { color: 'white' } : { color: 'transparent' }"
     @click="$emit('callCreateEvent', newEvent)"
-    class="font-semibold my-1 mt-2 bg-black text-white rounded text-l disabled:bg-transparent hover:bg-gray-600 px-4 transition-color duration-200 delay-200">
+    class="font-semibold my-2 mt-2 bg-black text-white rounded text-l disabled:bg-transparent hover:bg-gray-600 px-4 transition-color duration-200 delay-200">
       Post
     </button>
   </div>

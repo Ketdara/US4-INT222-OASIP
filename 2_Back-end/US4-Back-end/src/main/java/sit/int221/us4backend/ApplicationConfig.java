@@ -77,12 +77,12 @@ public class ApplicationConfig {
         return mailSender;
     }
 
-    @Bean(name = "multipartResolver")
-    public MultipartResolver multipartResolver() {
-        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
-        multipartResolver.setMaxUploadSize(10485760);
-        return multipartResolver;
-    }
+//    @Bean(name = "multipartResolver")
+//    public MultipartResolver multipartResolver() {
+//        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+//        multipartResolver.setMaxUploadSizePerFile(10485760);
+//        return multipartResolver;
+//    }
 
 //    @Bean
 //    public StandardServletMultipartResolver multipartResolver() {
