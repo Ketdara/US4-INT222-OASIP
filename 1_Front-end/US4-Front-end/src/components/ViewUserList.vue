@@ -13,6 +13,7 @@ defineProps({
   <table class="content-table rounded-lg">
     <thead>
       <tr class="rounded-lg h-full">
+        <th></th>
         <th>Name</th>
         <th>Email</th>
         <th>Role</th> 
@@ -21,6 +22,7 @@ defineProps({
     </thead>
     <tbody v-for="user in userList" :key="user">
       <tr>
+        <td></td>
         <td>{{ user.name}}</td>
         <td>{{ user.email}}</td>
         <td>{{ user.role}}</td>

@@ -22,20 +22,25 @@ const currentEmail = ref(null);
 const currentRole = ref(null);
 const currentToken = ref(null);
 const currentRefreshToken = ref(null);
+const isSessionExpired = ref(null)
 
 onBeforeUpdate(async () => {
   updateCurrentUser();
 })
 
-const updateCurrentUser = () => {
+const updateCurrentUser = async () => {
   currentName.value = localStorage.getItem('name');
   currentEmail.value = localStorage.getItem('email');
   currentRole.value = localStorage.getItem('role');
   currentToken.value = localStorage.getItem('jwtToken');
   currentRefreshToken.value = localStorage.getItem('refreshToken');
+  isSessionExpired.value = localStorage.getItem('isJwtExpired')
 }
 
 const updateUsers = async () => {
+  console.log("Session expired : " + isSessionExpired.value);
+  if(isSessionExpired.value === 'true') return
+
   if(maxPageNum.value < selectedPageNum.value) {
     selectedPageNum.value = maxPageNum.value
   }
@@ -47,11 +52,14 @@ const updateUsers = async () => {
 
 onBeforeMount(async () => {
   selectedPageNum.value = 1
+  await updateCurrentUser();
   updateUsers();
-  updateCurrentUser();
 })
 
 const getUsersAsPage = async (pageNum) => {
+  console.log("Session expired : " + isSessionExpired.value);
+  if(isSessionExpired.value == 'true') return
+
   try {
     userPage.value = await userAPI.getUsersAsPage(pageNum-1);
   }catch(err) {
@@ -157,32 +165,32 @@ const logout = () => {
 </script>
 
 <template>
-<div class="pb-5">
-  <div>
-    <login-user
-      v-if="isLoginOpen"
-      @toggleModal="toggleLogin"
-      @callLoginUser="login"/>
-  </div>
   <div>
     <match-user
       v-if="isMatchOpen"
       @toggleModal="toggleMatch"
       @callMatchUser="match"/>
   </div>
-  <div class="bg-black p-4 px-7 text-white">
-    <div class="font-semibold text-2xl">OASIP</div>
+  <div class="ml-10 -mb-2">
+    <!-- <div class="font-semibold text-2xl">OASIP</div>
     <p v-if="currentName === null" class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
     <p v-else class="text-l inline">Welcome user: <span class="ml-1" style="color:Lime;">{{currentName.slice(0, 30)}}</span></p>
-    <button class="mr-10 font-semibold float-right" @click="toggleLogin">Login</button>
+    <button class="mr-10 font-semibold float-right" @click="toggleLogin">Login</button> -->
 
-    <button v-if="currentToken !== null && currentRefreshToken !== null" class="mr-10 font-semibold float-right" @click="logout">Logout</button>
-    <button v-if="currentToken !== null && currentRefreshToken !== null" class="mr-10 font-semibold float-right" @click="refresh">Refresh</button>
-    <button v-if="currentRole !== null && currentRole.toString().match('admin')" class="mr-10 font-semibold float-right" @click="toggleMatch">Match</button>  
+    <!-- <button v-if="currentToken !== null && currentRefreshToken !== null" class="mr-10 font-semibold float-right" @click="logout">Logout</button> -->
+    <button v-if="currentToken !== null && currentRefreshToken !== null" class="mr-5" @click="refresh">Refresh</button>
+    <button v-if="currentRole !== null && currentRole.toString().match('admin')" class="mr-5" @click="toggleMatch">Match</button>  
+  </div> 
+  <!-- End-buttons -->
 
+<div class="grid justify-items-start ">
+  <!-- <div>
+    <login-user
+      v-if="isLoginOpen"
+      @toggleModal="toggleLogin"
+      @callLoginUser="login"/>
+  </div> -->
 
-  <!-- End-Login -->
-  </div>
   <div class="px-8">
     <div class="mt-8 grid grid-cols-2 gap-x-10 gap-y-8 rounded-lg">
       <!-- User List -->
@@ -201,11 +209,14 @@ const logout = () => {
               </div>
 
             </div>
-            <div class="m-5 text-l" v-else>No user.</div> 
+            <div class="m-5 text-l grid grid-cols-5 gap-x-10 gap-y-8" v-else>No user.</div> 
           </div>
-          <div class="m-5 text-l" v-else>User prohibited.</div>
+          <div class="m-5 text-l grid grid-cols-5 gap-x-10 gap-y-8 " v-else>User prohibited.</div>
         </div>
-        <div class="m-5 text-l" v-else>Please login.</div>
+        <div class="m-5 text-l" v-else-if="isSessionExpired === 'true'">
+          <span style="color:crimson">Session expired</span>, please refresh your token in the user page.
+        </div>
+        <div class="m-5 text-l grid grid-cols-5 gap-x-10 gap-y-8" v-else>Please login.</div>
 
         </div>
         <!-- Create User -->
@@ -221,7 +232,10 @@ const logout = () => {
             </div>
             <div class="text-white ml-5" v-else >User prohibited.</div>
           </div>
-            <div class="m-5 text-l text-white" v-else>Please login.</div> 
+          <div class="m-5 text-white" v-else-if="isSessionExpired === 'true'">
+            Session expired.
+          </div>
+          <div class="m-5 text-l text-white" v-else>Please login.</div> 
         </div>
 
       <!-- User details -->
@@ -245,7 +259,10 @@ const logout = () => {
           </div> 
           <div v-else class="ml-5">User prohibited.</div>
         </div>
-          <div class="m-5 text-l" v-else>Please login.</div> 
+        <div class="m-5 text-l" v-else-if="isSessionExpired === 'true'">
+          Session expired.
+        </div>
+        <div class="m-5 text-l" v-else>Please login.</div> 
         </div>
       </div>
   </div>

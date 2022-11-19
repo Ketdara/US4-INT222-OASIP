@@ -22,14 +22,18 @@ const currentName = ref(null);
 const currentEmail = ref(null);
 const currentRole = ref(null);
 
+const isSessionExpired = ref(null)
+const isLoading = ref(false)
+
 onBeforeUpdate(async () => {
   updateCurrentUser();
 })
 
-const updateCurrentUser = () => {
+const updateCurrentUser = async () => {
   currentName.value = localStorage.getItem('name');
   currentEmail.value = localStorage.getItem('email');
   currentRole.value = localStorage.getItem('role');
+  isSessionExpired.value = localStorage.getItem('isJwtExpired')
 }
 
 var currentFilter = ref({
@@ -39,6 +43,9 @@ var currentFilter = ref({
 });
 
 const updateEvents = async () => {
+  console.log("Session expired : " + isSessionExpired.value);
+  if(isSessionExpired.value === 'true') return
+
   if(maxPageNum.value < selectedPageNum.value) {
     selectedPageNum.value = maxPageNum.value
   }
@@ -55,9 +62,9 @@ const setFilter = (filter) => {
 
 onBeforeMount(async () => {
   selectedPageNum.value = 1
+  await updateCurrentUser();
   updateEvents();
   await getEventCategories();
-  updateCurrentUser();
 })
 
 const getEventsAsPage = async (pageNum) => {
@@ -77,8 +84,11 @@ const getEventCategories = async () => {
 }
 
 const getEventById = async (id) => {
+  isLoading.value = true
+
   event.value = await eventAPI.getEventById(id);
   isEditing.value = false;
+  isLoading.value = false
 }
 
 const postEvent = async (event) => {
@@ -143,24 +153,6 @@ const toggleModal = () => {
 </script>
 
 <template>
-<div class="pb-5">
-  <div class="bg-black p-4 px-7 text-white">
-    <h1 class="font-semibold text-2xl">OASIP</h1>
-    <p v-if="currentName === null" class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
-    <p v-else class="text-l inline">Welcome user: <span class="ml-1" style="color:Lime;">{{currentName.slice(0, 30)}}</span></p>
-    <button class="mr-10 font-semibold float-right" @click="toggleModal">Event Category</button>
-  </div>
-  <div>
-    <div>
-      <view-config-event-category
-        v-if="isModalOpen"
-        :eventCategoryList='eventCategories'
-        :selectedCategory='selectedCategory'
-        @callPutEventCategory="putEventCategory"
-        @toggleModal="toggleModal"
-      />
-    </div>
-  </div>
   <div class="px-8">
     <div class="mt-8 grid grid-cols-2 gap-x-10 gap-y-8 rounded-lg">
       <!-- Event List & Filter -->
@@ -188,7 +180,7 @@ const toggleModal = () => {
             <div v-if="currentFilter.by === 'date'">No event on the specified date: {{new Date(currentFilter.date).toDateString()}}</div>
           </div>
         </div>
-        <div class="m-5 text-l" v-else>Please login.</div>
+        <div class="m-5 text-l grid grid-cols-5 gap-x-10 gap-y-8" v-else>Please login.</div>
       </div>
 
       <!-- Create Event -->
@@ -208,7 +200,7 @@ const toggleModal = () => {
       
 
       <!-- Event details -->
-      <div class="bg-neutral-200 rounded-lg p-3">
+      <div class="bg-neutral-200 rounded-l p-3">
         <h2 class="font-semibold">Show Details : </h2>
         <div v-if="currentRole !== null">
           <view-event-details
@@ -217,6 +209,7 @@ const toggleModal = () => {
             @callEditEvent="toggleEdit"
             @callRemoveEvent="deleteEvent"
             :currentRole="currentRole"
+            :isLoading="isLoading"
           />
           <div v-if="!currentRole.toString().match('lecturer')">
             <reschedule-event
@@ -227,12 +220,15 @@ const toggleModal = () => {
             />
           </div>
         </div>
+        <div class="m-5 text-l" v-else-if="isSessionExpired === 'true'">
+          Session expired.
+        </div>
         <div class="m-5 text-l" v-else>Please login.</div>
       </div>
 
     </div>
   </div>
-</div>
+
 </template>
 
 <style scoped>

@@ -8,6 +8,10 @@ defineProps({
   currentRole: {
     type: String,
     default: null
+  },
+  isLoading: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -19,8 +23,10 @@ const deleteConfirmation = () => {
 </script>
 
 <template>
+
 <div class="ml-5 mt-3">
-  <div v-if="Object.keys(event).length > 0">
+  <div v-if="isLoading === true" class="font-semibold">Now loading...</div>
+  <div v-else-if="Object.keys(event).length > 0">
     <ul class="my-4">
       <li class="m-2 font-bold text-l">Event: </li>
       <li class="m-2">▸ {{ event.eventCategory.eventCategoryName }}</li>
@@ -34,8 +40,11 @@ const deleteConfirmation = () => {
     <ul class="my-4">
       <li class="m-2 font-bold text-l">Additional Information:</li>
       <li class="m-2">▸ {{ event.eventNotes === null || event.eventNotes.length === 0 ? "No details" : event.eventNotes }}</li>
-      <li v-if="event.fileName !== null" class="m-2">▸ <a :href="event.url" style="color :blue" :download="event.fileName">{{event.fileName}}</a></li>
-      
+    </ul>
+    <ul class="my-4">
+      <li class="m-2 font-bold text-l">My attachment:</li>
+      <li v-if="event.fileName === null" class="m-2">▸ No attachment </li>
+      <li v-else="event.fileName !== null" class="m-2"><a :href="event.url" style="color :blue" :download="event.fileName">{{event.fileName}}</a></li>
     </ul>
     <div v-if="!currentRole.match('lecturer')" class="float-right">
       <button

@@ -20,6 +20,10 @@ export const userAPI = {
       res.json().then(promise => {
         console.log(`[getUsersAsPage: ${pageNum}] Error: ` + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
+        
+        if(promise.message.toLowerCase().includes("expired") === true) {
+          localStorage.setItem('isJwtExpired', true)
+        }
       });
       return false;
     }
@@ -149,6 +153,8 @@ export const userAPI = {
       localStorage.setItem('email', userData.email)
       localStorage.setItem('role', userData.role)
       localStorage.setItem('name', userData.name)
+
+      localStorage.removeItem('isJwtExpired')
       return true;
     }
     if(res.status === 400 || res.status === 401 || res.status === 404) {

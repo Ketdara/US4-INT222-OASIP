@@ -61,6 +61,9 @@ const putConfirmation = () => {
       <li class="m-2 font-bold text-l">Additional Information:</li>
       <li class="m-2">▸ <input type="text" v-model="event.eventNotes" class="input"><span class="ml-3 text-black" v-if="event.eventNotes !== null"><span v-if="event.eventNotes.trim().length > 0" :style="event.eventNotes.trim().length <= 500 ? { color: 'black' } : { color: 'red' }">{{event.eventNotes.trim().length}}/500</span></span></li>
       <!-- <li class="m-1"><span class="fileSelect"><input type="file" @change="selectFile"><span v-if="event.fileName !== undefined && event.fileName !== null">{{event.fileName.length > 22 ? event.fileName.slice(0, 10) + "..." + event.fileName.slice(-10) : event.fileName}}</span></span></li> -->
+    </ul>
+    <ul class="my-4">
+      <li class="m-2 font-bold text-l">My attachment:</li>
       <li class="m-1">
         <span class="fileSelect">
           <input type="file" @change="selectFile">
@@ -72,7 +75,6 @@ const putConfirmation = () => {
           </span>
         </span>
       </li>
-
     </ul>
     <div class="float-right">
       <button

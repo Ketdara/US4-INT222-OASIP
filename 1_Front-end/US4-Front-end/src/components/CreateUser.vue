@@ -61,7 +61,7 @@ const toggleShowPassword = () => {
 <template>
 <div class="ml-5">
   <div class="flex">
-    <div class="columnA text-white">
+    <div class="columnA text-white text-right">
       <ul>
         <li class="m-1">Name:</li>
         <li class="m-1">Email:</li>

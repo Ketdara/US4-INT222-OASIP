@@ -66,6 +66,10 @@ export const eventAPI = {
       res.json().then(promise => {
         console.log('[getEventsAsPage: ${pageNum}] Error: ' + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
+        
+        if(promise.message.toLowerCase().includes("expired") === true) {
+          localStorage.setItem('isJwtExpired', true)
+        }
       });
       return null;
     }

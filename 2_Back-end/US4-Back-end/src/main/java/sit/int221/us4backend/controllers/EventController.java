@@ -36,7 +36,7 @@ import java.nio.file.Paths;
 import java.sql.Array;
 import java.util.List;
 
-//@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/events")
 public class EventController {

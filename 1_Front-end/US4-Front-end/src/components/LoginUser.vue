@@ -6,6 +6,11 @@ const credentials = ref({
   email: null,
   password: null
 })
+
+const isShowPassword = ref(false)
+const toggleShowPassword = () => {
+  isShowPassword.value = !isShowPassword.value
+}
 </script>
  
 <template>
@@ -14,9 +19,20 @@ const credentials = ref({
         <div class="container">
             <h1 class="text-3xl font-bold mb-5 text-center text-black">Login</h1>
             <label class="text-lg"><b>Email</b></label>
-            <br><input class="m-2 inputField" type="text" placeholder="Enter Email" v-model="credentials.email">
+            <br><input class="mt-2 mb-2 inputField" type="text" v-model="credentials.email">
+            <br><p class="-mt-1 text-slate-500"> Example: name@gmail.com</p>
             <br><label class="text-lg"><b>Password</b></label>
-            <br><input class="m-2 inputField" type="password" placeholder="Enter Password" v-model="credentials.password"><br>
+            <br><input class="mt-2 mb-2 inputField" :type="isShowPassword ? 'text' : 'password'" type="password" v-model="credentials.password">
+            <button v-if="isShowPassword" class="m-2"><i id="show"><img src="../assets/eye.png"  width="20" @click="toggleShowPassword()"></i></button>
+            <button v-else class="m-2"><i id="show"><img src="../assets/hidden.png"  width="20" @click="toggleShowPassword()"></i></button>
+            <br><p class="-mt-1 text-slate-500"> Must have at least 8 characters</p>
+
+            <!-- Create account -->
+            <p class="text-sm font-light text-gray-500 dark:text-gray-500 mt-7">
+              Don't have an account?
+              <a href="/" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Sign up</a>
+            </p>
+
             <!-- Button Login -->
             <button
               type="button"

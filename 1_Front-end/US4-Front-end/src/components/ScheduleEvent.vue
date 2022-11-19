@@ -74,18 +74,22 @@ const selectFile = (event) => {
 
 const url = ref("")
 
+const now = ref(new Date())
+const nowFormatted = ref(now.value.getFullYear() + "-" + ("0"+(now.value.getMonth()+1)).slice(-2) + "-" +
+("0" + now.value.getDate()).slice(-2) + "T" + ("0" + now.value.getHours()).slice(-2) + ":" + ("0" + now.value.getMinutes()).slice(-2))
+
 </script>
 
 <template>
 <div class="ml-5">
   <div class="flex">
-    <div class="columnA text-white">
+    <div class="columnA text-white text-right">
       <ul>
         <li class="m-1">Event Category:</li>
         <li class="m-1">Booking Name:</li>
         <li class="m-1">Booking Email:</li>
         <li class="m-1">Event Start Time:</li>
-        <li class="m-1">Event Notes:</li>
+        <li class="m-1 inline text-left">Event Notes:(optional)</li>
       </ul>
     </div>
     <div class="columnB">
@@ -98,7 +102,7 @@ const url = ref("")
         <li class="m-1"><input class="input" type="text" v-model="event.bookingName"></li>
         <li class="m-1 text-white" v-if="currentRole !== null && currentEmail !== null && currentRole.toString().match('student')">{{newEvent.bookingEmail}}</li>
         <li class="m-1" v-else><input class="input" type="text" v-model="event.bookingEmail"></li>
-        <li class="m-1"><input class="input" type="datetime-local" v-model="event.eventStartTime"></li>
+        <li class="m-1"><input class="input" type="datetime-local" v-model="event.eventStartTime" :min=nowFormatted></li>
         <li class="m-1"><input class="input" type="text" v-model="event.eventNotes"></li>
 
       </ul>
@@ -116,7 +120,7 @@ const url = ref("")
   <div class="mx-1">
     <ul>
       <li class="text-white">
-        <span class="columnA">Attachment(10 MB):</span>
+        <span class="columnA text-right">Attachment(10 MB): (optional)</span>
         <span class="fileSelect"><input type="file" @change="selectFile">
           <span v-if="event.attachment !== null && event.attachment.name !== undefined && event.attachment.name !== null">
             {{event.attachment.name.length > 22 ? event.attachment.name.slice(0, 10) + "..." + event.attachment.name.slice(-10) : event.attachment.name}}
@@ -163,5 +167,8 @@ input[type='file'] {
 }
 .fileSelect {
   white-space: nowrap;
+}
+.inline {
+  display: inline;
 }
 </style>
