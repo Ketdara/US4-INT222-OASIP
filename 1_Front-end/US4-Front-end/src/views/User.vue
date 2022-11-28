@@ -165,6 +165,7 @@ const logout = () => {
 
 <template>
   <div>
+  <div>
     <match-user
       v-if="isMatchOpen"
       @toggleModal="toggleMatch"
@@ -266,6 +267,8 @@ const logout = () => {
       </div>
   </div>
 </div>
+    
+  </div>
 </template>
 
 <style scoped></style>

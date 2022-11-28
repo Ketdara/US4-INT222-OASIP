@@ -10,6 +10,7 @@ import FilterEvent from '../src/components/FilterEvent.vue';
 import ViewConfigEventCategory from '../src/components/ViewConfigEventCategory.vue';
 import LoginUser from '../src/components/LoginUser.vue';
 import { userAPI } from "../src/script/userAPI.js";
+import router from "./router/index.js"
 
 // import customTokenCredential from './CustomTokenProvider';
 // import { BlobServiceClient } from '@azure/storage-blob';
@@ -27,10 +28,10 @@ onBeforeUpdate(async () => {
 })
 
 onBeforeMount(async () => {
-  selectedPageNum.value = 1
+  // selectedPageNum.value = 1
   updateCurrentUser();
-  updateEvents();
-  await getEventCategories();
+  // updateEvents();
+  // await getEventCategories();
 })
 const updateCurrentUser = () => {
   currentName.value = localStorage.getItem('name');
@@ -38,9 +39,9 @@ const updateCurrentUser = () => {
   currentRole.value = localStorage.getItem('role');
 }
 
-const getEventCategories = async () => {
-  eventCategories.value = await eventCategoryAPI.getEventCategories();
-}
+// const getEventCategories = async () => {
+//   eventCategories.value = await eventCategoryAPI.getEventCategories();
+// }
 // Login
 const isLoginOpen = ref(false);
 
@@ -54,38 +55,39 @@ const login = async (credentials) => {
     updateCurrentUser();
     updateUsers();
     toggleLogin();
+    router.push({ name: 'OASIP'});
   }
 }
 
-const postUser = async (user) => {
-  if(await userAPI.postUser(user)) {
-    updateUsers();
-    resetPostUI();
-  }
-}
+// const postUser = async (user) => {
+//   if(await userAPI.postUser(user)) {
+//     updateUsers();
+//     resetPostUI();
+//   }
+// }
 
 onBeforeUpdate(async () => {
   updateCurrentUser();
 })
 
-const maxPageNum = ref(1)
-const selectedPageNum = ref(1)
+// const maxPageNum = ref(1)
+// const selectedPageNum = ref(1)
 
-const updateUsers = async () => {
-  if(maxPageNum.value < selectedPageNum.value) {
-    selectedPageNum.value = maxPageNum.value
-  }
-  if(selectedPageNum.value < 1) {
-    selectedPageNum.value = 1
-  }
-  await getUsersAsPage(selectedPageNum.value);
-}
+// const updateUsers = async () => {
+//   if(maxPageNum.value < selectedPageNum.value) {
+//     selectedPageNum.value = maxPageNum.value
+//   }
+//   if(selectedPageNum.value < 1) {
+//     selectedPageNum.value = 1
+//   }
+//   await getUsersAsPage(selectedPageNum.value);
+// }
 
-var currentFilter = ref({
-  by: "all",
-  category: null,
-  date: null
-});
+// var currentFilter = ref({
+//   by: "all",
+//   category: null,
+//   date: null
+// });
 
 // Logout
 const userList = ref([]);
@@ -95,46 +97,49 @@ const logout = () => {
     updateCurrentUser();
     alert("Logout Successful");
 
-    userList.value = null;
-    maxPageNum.value = 1;
+    // console.log(router.currentRoute);
+    router.push({ name: 'OASIP'});
+
+    // userList.value = null;
+    // maxPageNum.value = 1;
   }
 }
 
-const getUsersAsPage = async (pageNum) => {
-  try {
-    userPage.value = await userAPI.getUsersAsPage(pageNum-1);
-  }catch(err) {
-    alert(err);
-  }
-  if(userPage.value !== null) {
-    userList.value = userPage.value.content;
-    maxPageNum.value = userPage.value.totalPages;
-  }
-}
-const userPage = ref(null);
+// const getUsersAsPage = async (pageNum) => {
+//   try {
+//     userPage.value = await userAPI.getUsersAsPage(pageNum-1);
+//   }catch(err) {
+//     alert(err);
+//   }
+//   if(userPage.value !== null) {
+//     userList.value = userPage.value.content;
+//     maxPageNum.value = userPage.value.totalPages;
+//   }
+// }
+// const userPage = ref(null);
 
-const getEventsAsPage = async (pageNum) => {
-  try {
-    eventPage.value = await eventAPI.getEventsAsPage(pageNum-1, currentFilter.value);
-  }catch(err) {
-    alert(err);
-  }
-  if(eventPage.value !== null) {
-    eventList.value = eventPage.value.content;
-    maxPageNum.value = eventPage.value.totalPages;
-  }
-}
-const eventPage = ref(null);
+// const getEventsAsPage = async (pageNum) => {
+//   try {
+//     eventPage.value = await eventAPI.getEventsAsPage(pageNum-1, currentFilter.value);
+//   }catch(err) {
+//     alert(err);
+//   }
+//   if(eventPage.value !== null) {
+//     eventList.value = eventPage.value.content;
+//     maxPageNum.value = eventPage.value.totalPages;
+//   }
+// }
+// const eventPage = ref(null);
 
-const updateEvents = async () => {
-  if(maxPageNum.value < selectedPageNum.value) {
-    selectedPageNum.value = maxPageNum.value
-  }
-  if(selectedPageNum.value < 1) {
-    selectedPageNum.value = 1
-  }
-  await getEventsAsPage(selectedPageNum.value);
-}
+// const updateEvents = async () => {
+//   if(maxPageNum.value < selectedPageNum.value) {
+//     selectedPageNum.value = maxPageNum.value
+//   }
+//   if(selectedPageNum.value < 1) {
+//     selectedPageNum.value = 1
+//   }
+//   await getEventsAsPage(selectedPageNum.value);
+// }
 
 const msalConfig = {
   auth: {
@@ -177,7 +182,7 @@ const getIDToken = async (account) => {
   };
   try {
     let tokenResponse = await msalInstance.value.acquireTokenSilent(request);
-    console.log(`ID token: ${tokenResponse.idToken}`)
+    // console.log(`ID token: ${tokenResponse.idToken}`)
     localStorage.setItem('idToken', tokenResponse.idToken);
   } catch (error) {
       console.log(`error during ID token acquisition: ${error}`);
@@ -185,7 +190,13 @@ const getIDToken = async (account) => {
 }
 
 const getAccessToken = async () => {
-  await userAPI.loginMSUser();
+  if(await userAPI.loginMSUser()) {
+    alert("Login Successful");
+    updateCurrentUser();
+    // updateUsers();
+    toggleLogin();
+    router.push({ name: 'OASIP'});
+  }
 }
 </script>
 
@@ -199,7 +210,6 @@ const getAccessToken = async () => {
       <router-link :to="{ name: 'OASIP'}" class="mr-7 hover:text-gray-900 hover:bg-gray-100 rounded">Events</router-link>
       <router-link :to="{ name: 'EventCategory'}" class="mr-7 hover:text-gray-900 hover:bg-gray-100 rounded">Event Category</router-link>
       <router-link :to="{ name: 'User'}" class="mr-7 hover:text-gray-900 hover:bg-gray-100 rounded">User</router-link>
-      <button @click="msSignIn">TestMSLogin</button>
     </nav>
     <div>
       <button v-if="currentName === null" class="font-medium float-right bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-xl mt-4 md:mt-0" @click="toggleLogin">Login</button>
@@ -220,6 +230,7 @@ const getAccessToken = async () => {
         v-if="isLoginOpen"
         @toggleModal="toggleLogin"
         @callLoginUser="login"
+        @callLoginMS="msSignIn"
       />
     </div>
 </header>

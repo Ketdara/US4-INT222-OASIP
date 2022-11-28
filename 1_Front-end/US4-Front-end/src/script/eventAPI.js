@@ -62,9 +62,9 @@ export const eventAPI = {
       console.log(`[getEventsAsPage: ${pageNum}] Successful`);
       return eventPage;
     }
-    if(res.status === 401){
+    if(res.status === 401 || res.status === 403){
       res.json().then(promise => {
-        console.log('[getEventsAsPage: ${pageNum}] Error: ' + promise.message.replace(/; /g, '\n'));
+        console.log(`[getEventsAsPage: ${pageNum}] Error: ` + promise.message.replace(/; /g, '\n'));
         alert(promise.message.replace(/; /g, '\n'));
         
         if(promise.message.toLowerCase().includes("expired") === true) {
