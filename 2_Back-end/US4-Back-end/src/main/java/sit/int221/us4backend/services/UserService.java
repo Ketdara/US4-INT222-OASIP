@@ -1,5 +1,6 @@
 package sit.int221.us4backend.services;
 
+import io.jsonwebtoken.Claims;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,9 @@ import sit.int221.us4backend.utils.JwtTokenUtil;
 import sit.int221.us4backend.utils.ListMapper;
 import sit.int221.us4backend.utils.UserValidator;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -179,22 +183,20 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email " + userCredentials.getEmail() + " not found or does not exist");
         }
 
-        final String jwtToken = jwtTokenUtil.generateToken(userCredentials.getEmail());
-        final String refreshToken = jwtTokenUtil.generateRefreshToken(userCredentials.getEmail());
-        return ResponseEntity.ok(new loginResponse(user.getName(), user.getEmail(), user.getRole(), jwtToken, refreshToken));
+        ArrayList<String> roles = new ArrayList();
+        roles.add(user.getRole());
+        final String refreshToken = jwtTokenUtil.generateRefreshToken(user.getId(), user.getEmail(), roles);
+        final String jwtToken = jwtTokenUtil.generateToken(user.getId(), user.getEmail(), roles);
+
+        return ResponseEntity.ok(new loginResponse(user.getId(), user.getName(), user.getEmail(), roles, jwtToken, refreshToken));
     }
 
-    public ResponseEntity<?> regenerateTokens(RefreshRequest request) {
-        final String jwtToken = jwtTokenUtil.regenerateToken(request.getRefreshToken());
-        final String refreshToken = jwtTokenUtil.regenerateRefreshToken(request.getRefreshToken());
-        return ResponseEntity.ok(new JwtResponse(jwtToken, refreshToken));
-    }
 
-    public User getUserFromEmail(String email) {
-        try {
-            return userRepository.findByEmail(email);
-        }catch (NullPointerException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email from token " + email + " not found or does not exist");
-        }
-    }
+//    public User getUserFromEmail(String email) {
+//        try {
+//            return userRepository.findByEmail(email);
+//        }catch (NullPointerException e) {
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email from token " + email + " not found or does not exist");
+//        }
+//    }
 }

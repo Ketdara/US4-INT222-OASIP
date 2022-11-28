@@ -1,9 +1,14 @@
 package sit.int221.us4backend.utils;
 
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.*;
 import java.util.function.Function;
 
 import io.jsonwebtoken.*;
@@ -11,9 +16,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
+import sit.int221.us4backend.model.JwtResponse;
+import sit.int221.us4backend.model.MSIPRequest;
 import sit.int221.us4backend.model.RefreshRequest;
+import sit.int221.us4backend.model.loginResponse;
+import sit.int221.us4backend.msip.SigningKeyResolver;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -39,27 +49,20 @@ public class JwtTokenUtil implements Serializable {
     @Value("${jwt.refreshExpirationInMs}")
     private int refreshExpirationInMs;
 
-    public String getEmailFromRefreshToken(String token) {
-        return getClaimFromRefreshToken(token, Claims::getSubject);
-    }
+    private RSAPublicKey rsaPublicKey;
 
-    public <T> T getClaimFromRefreshToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = Jwts.parser().setSigningKey(refreshSecret).parseClaimsJws(token).getBody();
-        return claimsResolver.apply(claims);
-    }
-
-    public String getEmailFromToken(String token) {
-        return getClaimFromToken(token, Claims::getSubject);
-    }
-
-    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
-        return claimsResolver.apply(claims);
-    }
-
-    public String generateToken(String email) {
+    public String generateToken(Integer id, String email, Object roles) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", id);
+        claims.put("roles", roles);
         return doGenerateToken(claims, email);
+    }
+
+    public String generateRefreshToken(Integer id, String email, Object roles) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", id);
+        claims.put("roles", roles);
+        return doGenerateRefreshToken(claims, email);
     }
 
     //while creating the token -
@@ -67,17 +70,61 @@ public class JwtTokenUtil implements Serializable {
     //2. Sign the JWT using the HS512 algorithm and secret key.
     //3. According to JWS Compact Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
     //   compaction of the JWT to a URL-safe string
-    private String doGenerateToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+    private String doGenerateToken(Map<String, Object> claims, String email) {
+        return Jwts.builder().setClaims(claims).setSubject(email).setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret).compact();
     }
 
-    public boolean validateTokenFromHeader(HttpServletRequest request) {
-        return validateToken(extractJwtFromHeader(request));
+    private String doGenerateRefreshToken(Map<String, Object> claims, String email) {
+        return Jwts.builder().setClaims(claims).setSubject(email).setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpirationInMs))
+                .signWith(SignatureAlgorithm.HS512, refreshSecret).compact();
     }
 
-    private String extractJwtFromHeader(HttpServletRequest request) {
+    public Claims getAllClaimsFromIdToken(String token) {
+        SigningKeyResolver signingKeyResolver = null;
+        try {
+            signingKeyResolver = new SigningKeyResolver("https://login.microsoftonline.com/6f4432dc-20d2-441d-b1db-ac3380ba633d");
+        } catch(Exception e) {
+            System.out.println("Broke");
+        }
+        return Jwts.parser().setSigningKeyResolver(signingKeyResolver).parseClaimsJws(token).getBody();
+    }
+
+    public Claims getAllClaimsFromToken(String token) {
+        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+    }
+
+    public Claims getAllClaimsFromRefreshToken(String token) {
+        return Jwts.parser().setSigningKey(refreshSecret).parseClaimsJws(token).getBody();
+    }
+
+    public ResponseEntity<?> generateFromRefreshToken(RefreshRequest request) {
+        Claims claims = getAllClaimsFromRefreshToken(request.getRefreshToken());
+        return generateTokenFromClaims(claims);
+    }
+
+    public ResponseEntity<?> generateFromIdToken(MSIPRequest request) {
+        Claims claims = getAllClaimsFromIdToken(request.getIdToken());
+        claims.put("userId", null);
+        claims.setSubject((String) claims.get("preferred_username"));
+
+        return generateTokenFromClaims(claims);
+    }
+
+    private ResponseEntity<?> generateTokenFromClaims(Claims claims) {
+        Integer userId = getUserIdAsInt(claims);
+        String name = getNameAsString(claims);
+        String email = getEmailAsString(claims);
+        ArrayList roles = getRolesAsArrayList(claims);
+
+        final String jwtToken = generateToken(userId, email, roles);
+        final String refreshToken = generateRefreshToken(userId, email, roles);
+        return ResponseEntity.ok(new loginResponse(userId, name, email, roles, jwtToken, refreshToken));
+    }
+
+    public String extractTokenFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
@@ -85,7 +132,7 @@ public class JwtTokenUtil implements Serializable {
         return "";
     }
 
-    private boolean validateToken(String token) {
+    public boolean validateToken(String token) {
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
             return true;
@@ -96,11 +143,7 @@ public class JwtTokenUtil implements Serializable {
         }
     }
 
-    public boolean validateRefreshTokenFromBody(RefreshRequest request) {
-        return validateRefreshToken(request.getRefreshToken());
-    }
-
-    private boolean validateRefreshToken(String refreshToken) {
+    public boolean validateRefreshToken(String refreshToken) {
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(refreshSecret).parseClaimsJws(refreshToken);
             return true;
@@ -111,26 +154,16 @@ public class JwtTokenUtil implements Serializable {
         }
     }
 
-    public String generateRefreshToken(String email) {
-        Map<String, Object> claims = new HashMap<>();
-        return doGenerateRefreshToken(claims, email);
+    public Integer getUserIdAsInt(Claims claims) {
+        return (Integer) claims.get("userId");
     }
-
-    private String doGenerateRefreshToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + refreshExpirationInMs))
-                .signWith(SignatureAlgorithm.HS512, refreshSecret).compact();
+    public String getNameAsString(Claims claims) {
+        return (String) claims.get("name");
     }
-
-    public String regenerateToken(String refreshToken) {
-        return generateToken(getEmailFromRefreshToken(refreshToken));
+    public String getEmailAsString(Claims claims) {
+        return (String) claims.get(Claims.SUBJECT);
     }
-    public String regenerateRefreshToken(String refreshToken) {
-        return generateToken(getEmailFromRefreshToken(refreshToken));
+    public ArrayList<String> getRolesAsArrayList(Claims claims) {
+        return new ArrayList((Collection<?>)claims.get("roles"));
     }
-
-    public String getEmailFromHeader(HttpServletRequest request) {
-        return getEmailFromToken(extractJwtFromHeader(request));
-    }
-
 }

@@ -43,7 +43,6 @@ var currentFilter = ref({
 });
 
 const updateEvents = async () => {
-  console.log("Session expired : " + isSessionExpired.value);
   if(isSessionExpired.value === 'true') return
 
   if(maxPageNum.value < selectedPageNum.value) {

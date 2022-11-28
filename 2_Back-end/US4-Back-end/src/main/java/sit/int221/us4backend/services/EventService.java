@@ -1,5 +1,6 @@
 package sit.int221.us4backend.services;
 
+import io.jsonwebtoken.Claims;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,12 +23,14 @@ import sit.int221.us4backend.dtos.EventPartialDTO;
 import sit.int221.us4backend.repositories.UserRepository;
 import sit.int221.us4backend.utils.DateTimeManager;
 import sit.int221.us4backend.utils.EventValidator;
+import sit.int221.us4backend.utils.JwtTokenUtil;
 import sit.int221.us4backend.utils.ListMapper;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -48,6 +51,8 @@ public class EventService {
     private UserRepository userRepository;
     @Autowired
     private EventCategoryOwnerRepository eventCategoryOwnerRepository;
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
 
     private Sort sort = Sort.by("eventStartTime").descending();
     private Integer maxDuration = 8;    // hours
@@ -59,69 +64,84 @@ public class EventService {
     private Integer beforeDateBuffer = maxDuration * -1;
     private Integer afterDateBuffer = 24 + maxDuration;
 
-    public Page<EventPartialDTO> getEventDTOsAsPage(Integer page, Integer pageSize, User user) {
+    public Page<EventPartialDTO> getEventDTOsAsPage(Integer page, Integer pageSize, Claims claims) {
         Page<Event> eventPage;
-        String userRole = user.getRole();
 
-        if(userRole.equals("admin")) eventPage = eventRepository.findAll(PageRequest.of(page, pageSize, sort));
-        else if(userRole.equals("student")) eventPage = eventRepository.findAllByBookingEmail(user.getEmail(), PageRequest.of(page, pageSize, sort));
-        else if(userRole.equals("lecturer")) eventPage = eventRepository.findAllByLecturerId(user.getId(), PageRequest.of(page, pageSize));
+        Integer userId = jwtTokenUtil.getUserIdAsInt(claims);
+        String email = jwtTokenUtil.getEmailAsString(claims);
+        ArrayList roles = jwtTokenUtil.getRolesAsArrayList(claims);
+
+        if(roles.contains("admin")) eventPage = eventRepository.findAll(PageRequest.of(page, pageSize, sort));
+        else if(roles.contains("student")) eventPage = eventRepository.findAllByBookingEmail(email, PageRequest.of(page, pageSize, sort));
+        else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByLecturerId(userId, PageRequest.of(page, pageSize));
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
     }
 
-    public Page<EventPartialDTO> getEventDTOsByCategoryAsPage(Integer page, Integer pageSize, Integer categoryId, User user) {
+    public Page<EventPartialDTO> getEventDTOsByCategoryAsPage(Integer page, Integer pageSize, Integer categoryId, Claims claims) {
         if(categoryId == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category ID not specified");
         Page<Event> eventPage;
-        String userRole = user.getRole();
 
-        if(userRole.equals("admin")) eventPage = eventRepository.findAllByEventCategory_Id(categoryId, PageRequest.of(page, pageSize, sort));
-        else if(userRole.equals("student")) eventPage = eventRepository.findAllByEventCategory_IdAndBookingEmail(categoryId, user.getEmail(), PageRequest.of(page, pageSize, sort));
-        else if(userRole.equals("lecturer")) eventPage = eventRepository.findAllByEventCategory_IdAndLecturerId(user.getId(), categoryId, PageRequest.of(page, pageSize));
+        Integer userId = jwtTokenUtil.getUserIdAsInt(claims);
+        String email = jwtTokenUtil.getEmailAsString(claims);
+        ArrayList roles = jwtTokenUtil.getRolesAsArrayList(claims);
+
+        if(roles.contains("admin")) eventPage = eventRepository.findAllByEventCategory_Id(categoryId, PageRequest.of(page, pageSize, sort));
+        else if(roles.contains("student")) eventPage = eventRepository.findAllByEventCategory_IdAndBookingEmail(categoryId, email, PageRequest.of(page, pageSize, sort));
+        else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByEventCategory_IdAndLecturerId(userId, categoryId, PageRequest.of(page, pageSize));
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
     }
 
-    public Page<EventPartialDTO> getEventDTOsByUpcomingAsPage(Integer page, Integer pageSize, String nowISOString, User user) {
+    public Page<EventPartialDTO> getEventDTOsByUpcomingAsPage(Integer page, Integer pageSize, String nowISOString, Claims claims) {
         if(nowISOString == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Timestamp not specified");
         String now = dateTimeManager.ISOStringToDateString(nowISOString);
         Page<Event> eventPage;
-        String userRole = user.getRole();
 
-        if(userRole.equals("admin")) eventPage = eventRepository.findEventUpcomingAll(now, PageRequest.of(page, pageSize, sort));
-        else if(userRole.equals("student")) eventPage = eventRepository.findEventUpcomingAllAndEmail(now, user.getEmail(), PageRequest.of(page, pageSize, sort));
-        else if(userRole.equals("lecturer")) eventPage = eventRepository.findEventUpcomingAllAndLecturerId(now, user.getId(), PageRequest.of(page, pageSize));
+        Integer userId = jwtTokenUtil.getUserIdAsInt(claims);
+        String email = jwtTokenUtil.getEmailAsString(claims);
+        ArrayList roles = jwtTokenUtil.getRolesAsArrayList(claims);
+
+        if(roles.contains("admin")) eventPage = eventRepository.findEventUpcomingAll(now, PageRequest.of(page, pageSize, sort));
+        else if(roles.contains("student")) eventPage = eventRepository.findEventUpcomingAllAndEmail(now, email, PageRequest.of(page, pageSize, sort));
+        else if(roles.contains("lecturer")) eventPage = eventRepository.findEventUpcomingAllAndLecturerId(now, userId, PageRequest.of(page, pageSize));
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
     }
 
-    public Page<EventPartialDTO> getEventDTOsByPastAsPage(Integer page, Integer pageSize, String nowISOString, User user) {
+    public Page<EventPartialDTO> getEventDTOsByPastAsPage(Integer page, Integer pageSize, String nowISOString, Claims claims) {
         if(nowISOString == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Timestamp not specified");
         String now = dateTimeManager.ISOStringToDateString(nowISOString);
         Page<Event> eventPage;
-        String userRole = user.getRole();
 
-        if(userRole.equals("admin")) eventPage = eventRepository.findEventPastAll(now, PageRequest.of(page, pageSize, sort));
-        else if(userRole.equals("student")) eventPage = eventRepository.findEventPastAllAndEmail(now, user.getEmail(), PageRequest.of(page, pageSize, sort));
-        else if(userRole.equals("lecturer")) eventPage = eventRepository.findEventPastAllAndLecturerId(now, user.getId(), PageRequest.of(page, pageSize));
+        Integer userId = jwtTokenUtil.getUserIdAsInt(claims);
+        String email = jwtTokenUtil.getEmailAsString(claims);
+        ArrayList roles = jwtTokenUtil.getRolesAsArrayList(claims);
+
+        if(roles.contains("admin")) eventPage = eventRepository.findEventPastAll(now, PageRequest.of(page, pageSize, sort));
+        else if(roles.contains("student")) eventPage = eventRepository.findEventPastAllAndEmail(now, email, PageRequest.of(page, pageSize, sort));
+        else if(roles.contains("lecturer")) eventPage = eventRepository.findEventPastAllAndLecturerId(now, userId, PageRequest.of(page, pageSize));
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
     }
 
-    public Page<EventPartialDTO> getEventDTOsByDateAsPage(Integer page, Integer pageSize, String dateISOString, User user) {
+    public Page<EventPartialDTO> getEventDTOsByDateAsPage(Integer page, Integer pageSize, String dateISOString, Claims claims) {
         if(dateISOString == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ICT Date timestamp not specified");
         String thisDate = dateTimeManager.ISOStringToDateString(dateISOString);
         String nextDate = dateTimeManager.ISOStringToOffsetDateString(dateISOString, 24); // next 24 hours
         Page<Event> eventPage;
-        String userRole = user.getRole();
 
-        if(userRole.equals("admin")) eventPage = eventRepository.findAllByEventStartTimeBetween(thisDate, nextDate, PageRequest.of(page, pageSize, sort));
-        else if(userRole.equals("student")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndBookingEmail(thisDate, nextDate, user.getEmail(), PageRequest.of(page, pageSize, sort));
-        else if(userRole.equals("lecturer")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndLecturerId(thisDate, nextDate, user.getId(), PageRequest.of(page, pageSize));
+        Integer userId = jwtTokenUtil.getUserIdAsInt(claims);
+        String email = jwtTokenUtil.getEmailAsString(claims);
+        ArrayList roles = jwtTokenUtil.getRolesAsArrayList(claims);
+
+        if(roles.contains("admin")) eventPage = eventRepository.findAllByEventStartTimeBetween(thisDate, nextDate, PageRequest.of(page, pageSize, sort));
+        else if(roles.contains("student")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndBookingEmail(thisDate, nextDate, email, PageRequest.of(page, pageSize, sort));
+        else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndLecturerId(thisDate, nextDate, userId, PageRequest.of(page, pageSize));
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
@@ -159,19 +179,37 @@ public class EventService {
         return timeframes;
     }
 
-    public EventWithValidateDTO getEventDTOById(Integer event_id, User user) {
+    public EventWithValidateDTO getEventDTOById(Integer event_id, Claims claims) {
         Event event = eventRepository.findById(event_id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event " + event_id + " not found or does not exist"));
         event.setEventStartTime(dateTimeManager.dateStringToISOString(event.getEventStartTime()));
-        String userRole = user.getRole();
 
-        if(userRole.equals("student") && !event.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
-        if(userRole.equals("lecturer")) {
-            List<EventCategoryOwner> lecturerCategory = eventCategoryOwnerRepository.findAllById_UserId(user.getId());
-            if(!lecturerCategory.stream().anyMatch(category -> category.getId().getEventCategoryId() == event.getEventCategory().getId())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
+        Integer userId = jwtTokenUtil.getUserIdAsInt(claims);
+        String email = jwtTokenUtil.getEmailAsString(claims);
+        ArrayList roles = jwtTokenUtil.getRolesAsArrayList(claims);
+
+        if(!roles.contains("admin")) {      // not admin
+            if(!roles.contains("student")) {      // not student
+                if(!roles.contains("lecturer")) {       // not lecturer
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
+                }else {     // lecturer
+                    List<EventCategoryOwner> lecturerCategory = eventCategoryOwnerRepository.findAllById_UserId(userId);
+                    if(!lecturerCategory.stream().anyMatch(category -> category.getId().getEventCategoryId() == event.getEventCategory().getId())) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
+                    }
+                }
+            }else if(!event.getBookingEmail().equals(email)) {
+                if(!roles.contains("lecturer")) {       // invalid student
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email does not match with current user email");
+                }else {     // lecturer
+                    List<EventCategoryOwner> lecturerCategory = eventCategoryOwnerRepository.findAllById_UserId(userId);
+                    if(!lecturerCategory.stream().anyMatch(category -> category.getId().getEventCategoryId() == event.getEventCategory().getId())) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
+                    }
+                }
             }
         }
+
         EventWithValidateDTO selectedEvent = modelMapper.map(event, EventWithValidateDTO.class);
         if(selectedEvent.getFileName() != null) {
             selectedEvent.setFile(getFile(selectedEvent.getFileName(), event_id));
@@ -186,12 +224,21 @@ public class EventService {
         return modelMapper.map(event, EventWithValidateDTO.class);
     }
 
-    public Event postEventDTO(EventWithValidateDTO newEventDTO, User user, MultipartFile file) {
+    public Event postEventDTO(EventWithValidateDTO newEventDTO, Claims claims, MultipartFile file) {
         callEventValidator(newEventDTO, false);
-        String userRole = user.getRole();
 
-        if(userRole.equals("student") && !newEventDTO.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email does not match with current user email");
-        if(userRole.equals("lecturer")) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
+        String email = jwtTokenUtil.getEmailAsString(claims);
+        ArrayList roles = jwtTokenUtil.getRolesAsArrayList(claims);
+
+
+        if(!roles.contains("admin")) {
+            if(!roles.contains("student")) {        // lecturer and guest
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
+            }
+            else if(!newEventDTO.getBookingEmail().equals(email)) {     // invalid student
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email does not match with current user email");
+            }
+        }
 
         newEventDTO.setEventStartTime(dateTimeManager.ISOStringToDateString(newEventDTO.getEventStartTime()));
         trimEventField(newEventDTO);
@@ -216,12 +263,18 @@ public class EventService {
         }else return createdEvent;
     }
 
-    public Event putEventDTO(EventWithValidateDTO newEventDTO, Integer event_id, User user, boolean isFileUpdate, MultipartFile file) {
+    public Event putEventDTO(EventWithValidateDTO newEventDTO, Integer event_id, Claims claims, boolean isFileUpdate, MultipartFile file) {
         callEventValidator(newEventDTO, true);
-        String userRole = user.getRole();
 
-        if(userRole.equals("student") && !newEventDTO.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot edit this event");
-        if(userRole.equals("lecturer")) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
+        String email = jwtTokenUtil.getEmailAsString(claims);
+        ArrayList roles = jwtTokenUtil.getRolesAsArrayList(claims);
+
+        if(!roles.contains("admin")) {
+            if(!roles.contains("student") || !newEventDTO.getBookingEmail().equals(email)) {    // lecturer or invalid email
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot edit this event");
+            }
+        }
+
 
         newEventDTO.setEventStartTime(dateTimeManager.ISOStringToDateString(newEventDTO.getEventStartTime()));
         trimEventField(newEventDTO);
@@ -265,12 +318,17 @@ public class EventService {
         return oldEvent;
     }
 
-    public void deleteEventDTOById(Integer event_id, User user) {
+    public void deleteEventDTOById(Integer event_id, Claims claims) {
         EventWithValidateDTO event = getEventDTOByIdShort(event_id);
-        String userRole = user.getRole();
 
-        if(userRole.equals("student") && !event.getBookingEmail().equals(user.getEmail())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot delete this event");
-        if(userRole.equals("lecturer")) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
+        String email = jwtTokenUtil.getEmailAsString(claims);
+        ArrayList roles = jwtTokenUtil.getRolesAsArrayList(claims);
+
+        if(!roles.contains("admin")) {
+            if(!roles.contains("student") || !event.getBookingEmail().equals(email)) {    // lecturer or invalid email
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot edit this event");
+            }
+        }
 
 
         eventRepository.deleteById(event_id);

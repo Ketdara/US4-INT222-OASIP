@@ -1,5 +1,6 @@
 package sit.int221.us4backend.controllers;
 
+import io.jsonwebtoken.Claims;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import org.modelmapper.ModelMapper;
@@ -59,11 +60,11 @@ public class EventController {
             @RequestParam(defaultValue = "5") Integer pageSize,
             HttpServletRequest request) {
 
-        jwtTokenUtil.validateTokenFromHeader(request);
-        String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        User user = getUserFromEmail(tokenEmail);
+        String token = jwtTokenUtil.extractTokenFromHeader(request);
+        jwtTokenUtil.validateToken(token);
+        Claims claims = jwtTokenUtil.getAllClaimsFromToken(token);
 
-        return eventService.getEventDTOsAsPage(page, pageSize, user);
+        return eventService.getEventDTOsAsPage(page, pageSize, claims);
     }
 
     @GetMapping("/category")
@@ -73,11 +74,11 @@ public class EventController {
             @RequestParam(defaultValue = "1") Integer categoryId,
             HttpServletRequest request) {
 
-        jwtTokenUtil.validateTokenFromHeader(request);
-        String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        User user = getUserFromEmail(tokenEmail);
+        String token = jwtTokenUtil.extractTokenFromHeader(request);
+        jwtTokenUtil.validateToken(token);
+        Claims claims = jwtTokenUtil.getAllClaimsFromToken(token);
 
-        return eventService.getEventDTOsByCategoryAsPage(page, pageSize, categoryId, user);
+        return eventService.getEventDTOsByCategoryAsPage(page, pageSize, categoryId, claims);
     }
 
     @GetMapping("/upcoming")
@@ -87,11 +88,11 @@ public class EventController {
             @RequestParam String now,
             HttpServletRequest request) {
 
-        jwtTokenUtil.validateTokenFromHeader(request);
-        String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        User user = getUserFromEmail(tokenEmail);
+        String token = jwtTokenUtil.extractTokenFromHeader(request);
+        jwtTokenUtil.validateToken(token);
+        Claims claims = jwtTokenUtil.getAllClaimsFromToken(token);
 
-        return eventService.getEventDTOsByUpcomingAsPage(page, pageSize, now, user);
+        return eventService.getEventDTOsByUpcomingAsPage(page, pageSize, now, claims);
     }
 
     @GetMapping("/past")
@@ -101,11 +102,11 @@ public class EventController {
             @RequestParam String now,
             HttpServletRequest request) {
 
-        jwtTokenUtil.validateTokenFromHeader(request);
-        String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        User user = getUserFromEmail(tokenEmail);
+        String token = jwtTokenUtil.extractTokenFromHeader(request);
+        jwtTokenUtil.validateToken(token);
+        Claims claims = jwtTokenUtil.getAllClaimsFromToken(token);
 
-        return eventService.getEventDTOsByPastAsPage(page, pageSize, now, user);
+        return eventService.getEventDTOsByPastAsPage(page, pageSize, now, claims);
     }
 
     @GetMapping("/date")
@@ -115,11 +116,11 @@ public class EventController {
             @RequestParam String date,
             HttpServletRequest request) {
 
-        jwtTokenUtil.validateTokenFromHeader(request);
-        String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        User user = getUserFromEmail(tokenEmail);
+        String token = jwtTokenUtil.extractTokenFromHeader(request);
+        jwtTokenUtil.validateToken(token);
+        Claims claims = jwtTokenUtil.getAllClaimsFromToken(token);
 
-        return eventService.getEventDTOsByDateAsPage(page, pageSize, date, user);
+        return eventService.getEventDTOsByDateAsPage(page, pageSize, date, claims);
     }
 
     @GetMapping("/{event_id}")
@@ -128,43 +129,27 @@ public class EventController {
             HttpServletRequest request,
             HttpServletResponse response) {
 
-        jwtTokenUtil.validateTokenFromHeader(request);
-        String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        User user = getUserFromEmail(tokenEmail);
+        String token = jwtTokenUtil.extractTokenFromHeader(request);
+        jwtTokenUtil.validateToken(token);
+        Claims claims = jwtTokenUtil.getAllClaimsFromToken(token);
 
-        return eventService.getEventDTOById(event_id, user);
+        return eventService.getEventDTOById(event_id, claims);
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public void postEvent(
             @RequestParam(required = false) MultipartFile file,
-            @RequestParam String event,
+            @RequestParam String eventString,
             HttpServletRequest request) {
 
-//        if(file.getSize() > 10485760) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File size exceeds 10 MB");
-        String tokenEmail;
-        User user;
+        String token = jwtTokenUtil.extractTokenFromHeader(request);
+        jwtTokenUtil.validateToken(token);
+        Claims claims = jwtTokenUtil.getAllClaimsFromToken(token);
 
-        try {
-            jwtTokenUtil.validateTokenFromHeader(request);
-            tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-            user = getUserFromEmail(tokenEmail);
-        } catch(ResponseStatusException e){
-            user = new User();
-            user.setRole("guest");
-        }
+        EventWithValidateDTO newEventDTO = getEventFromString(eventString);
 
-        EventWithValidateDTO newEventDTO = null;
-        try {
-            JSONParser parser = new JSONParser();
-            JSONObject json = (JSONObject) parser.parse(event);
-            newEventDTO = modelMapper.map(json, EventWithValidateDTO.class);
-        } catch(Exception e){
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-        }
-
-        Event postedEvent = eventService.postEventDTO(newEventDTO, user, file);
+        Event postedEvent = eventService.postEventDTO(newEventDTO, claims, file);
         String to = postedEvent.getBookingEmail();
         String bookingName = postedEvent.getBookingName();
         String eventCategory = postedEvent.getEventCategory().getEventCategoryName();
@@ -179,41 +164,21 @@ public class EventController {
         emailUtil.sendRealEmail(to, subject, text);
     }
 
-//    @PutMapping("/{event_id}")
-//    public void putEvent(
-//            @RequestBody EventWithValidateDTO newEventDTO,
-//            @PathVariable Integer event_id,
-//            HttpServletRequest request) {
-//
-//        jwtTokenUtil.validateTokenFromHeader(request);
-//        String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-//        User user = getUserFromEmail(tokenEmail);
-//
-//        eventService.putEventDTO(newEventDTO, event_id, user);
-//    }
-
     @PutMapping("/{event_id}")
     public void putEvent(
             @RequestParam(required = false) MultipartFile file,
-            @RequestParam String event,
+            @RequestParam String eventString,
             @RequestParam(defaultValue = "false") boolean isFileUpdate,
             @PathVariable Integer event_id,
             HttpServletRequest request) {
 
-        jwtTokenUtil.validateTokenFromHeader(request);
-        String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        User user = getUserFromEmail(tokenEmail);
+        String token = jwtTokenUtil.extractTokenFromHeader(request);
+        jwtTokenUtil.validateToken(token);
+        Claims claims = jwtTokenUtil.getAllClaimsFromToken(token);
 
-        EventWithValidateDTO newEventDTO = null;
-        try {
-            JSONParser parser = new JSONParser();
-            JSONObject json = (JSONObject) parser.parse(event);
-            newEventDTO = modelMapper.map(json, EventWithValidateDTO.class);
-        } catch(Exception e){
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-        }
+        EventWithValidateDTO newEventDTO = getEventFromString(eventString);
 
-        eventService.putEventDTO(newEventDTO, event_id, user, isFileUpdate, file);
+        eventService.putEventDTO(newEventDTO, event_id, claims, isFileUpdate, file);
     }
 
     @DeleteMapping("/{event_id}")
@@ -221,11 +186,11 @@ public class EventController {
             @PathVariable Integer event_id,
             HttpServletRequest request) {
 
-        jwtTokenUtil.validateTokenFromHeader(request);
-        String tokenEmail = jwtTokenUtil.getEmailFromHeader(request);
-        User user = getUserFromEmail(tokenEmail);
+        String token = jwtTokenUtil.extractTokenFromHeader(request);
+        jwtTokenUtil.validateToken(token);
+        Claims claims = jwtTokenUtil.getAllClaimsFromToken(token);
 
-        eventService.deleteEventDTOById(event_id, user);
+        eventService.deleteEventDTOById(event_id, claims);
     }
 
     private User getUserFromEmail(String email) {
@@ -241,5 +206,15 @@ public class EventController {
             @RequestParam String date,
             @RequestParam Integer categoryId) {
         return eventService.getEventTimeframeDTOs(date, categoryId, true);
+    }
+
+    private EventWithValidateDTO getEventFromString(String eventString) {
+        try {
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(eventString);
+            return modelMapper.map(json, EventWithValidateDTO.class);
+        } catch(Exception e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 }

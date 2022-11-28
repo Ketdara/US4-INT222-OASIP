@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onBeforeMount, onBeforeUpdate } from 'vue';
+import { ref, onBeforeMount, onBeforeUpdate, onMounted } from 'vue';
 import { eventAPI } from "../src/script/eventAPI.js";
 import { eventCategoryAPI } from "../src/script/eventCategoryAPI.js";
 import ViewEventList from '../src/components/ViewEventList.vue';
@@ -10,6 +10,11 @@ import FilterEvent from '../src/components/FilterEvent.vue';
 import ViewConfigEventCategory from '../src/components/ViewConfigEventCategory.vue';
 import LoginUser from '../src/components/LoginUser.vue';
 import { userAPI } from "../src/script/userAPI.js";
+
+// import customTokenCredential from './CustomTokenProvider';
+// import { BlobServiceClient } from '@azure/storage-blob';
+import { PublicClientApplication } from '@azure/msal-browser';
+// import { mapMutations } from 'vuex';
 
 // Show username
 const currentName = ref(null);
@@ -23,7 +28,7 @@ onBeforeUpdate(async () => {
 
 onBeforeMount(async () => {
   selectedPageNum.value = 1
-  await updateCurrentUser();
+  updateCurrentUser();
   updateEvents();
   await getEventCategories();
 })
@@ -81,6 +86,7 @@ var currentFilter = ref({
   category: null,
   date: null
 });
+
 // Logout
 const userList = ref([]);
 const logout = () => {
@@ -129,6 +135,58 @@ const updateEvents = async () => {
   }
   await getEventsAsPage(selectedPageNum.value);
 }
+
+const msalConfig = {
+  auth: {
+    clientId: '8a7111b7-e23e-436d-a4ad-2a1e0ac20367',
+    authority:
+      'https://login.microsoftonline.com/6f4432dc-20d2-441d-b1db-ac3380ba633d',
+  },
+  cache: {
+    cacheLocation: 'sessionStorage',
+  },
+  // scopes: ["user.read"],
+}
+
+const msalInstance = ref(new PublicClientApplication(msalConfig));
+const oasipAccount = ref(null)
+
+const msSignIn = async () => {
+  await msalInstance.value
+    .loginPopup({})
+    .then(() => {
+      let accounts = msalInstance.value.getAllAccounts();
+      oasipAccount.value = accounts[0];
+      msLogIn(oasipAccount.value);
+    })
+    .catch(error => {
+      console.error(`error during authentication: ${error}`);
+    });
+}
+
+const msLogIn = async (account) => {
+  oasipAccount.value = account;
+  // console.log(oasipAccount.value.idTokenClaims);
+  await getIDToken(account);
+  await getAccessToken();
+}
+
+const getIDToken = async (account) => {
+  let request = {
+    account: account
+  };
+  try {
+    let tokenResponse = await msalInstance.value.acquireTokenSilent(request);
+    console.log(`ID token: ${tokenResponse.idToken}`)
+    localStorage.setItem('idToken', tokenResponse.idToken);
+  } catch (error) {
+      console.log(`error during ID token acquisition: ${error}`);
+  }
+}
+
+const getAccessToken = async () => {
+  await userAPI.loginMSUser();
+}
 </script>
 
 <template>
@@ -141,10 +199,11 @@ const updateEvents = async () => {
       <router-link :to="{ name: 'OASIP'}" class="mr-7 hover:text-gray-900 hover:bg-gray-100 rounded">Events</router-link>
       <router-link :to="{ name: 'EventCategory'}" class="mr-7 hover:text-gray-900 hover:bg-gray-100 rounded">Event Category</router-link>
       <router-link :to="{ name: 'User'}" class="mr-7 hover:text-gray-900 hover:bg-gray-100 rounded">User</router-link>
+      <button @click="msSignIn">TestMSLogin</button>
     </nav>
     <div>
       <button v-if="currentName === null" class="font-medium float-right bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-xl mt-4 md:mt-0" @click="toggleLogin">Login</button>
-      <button v-else="currentName !== null && currentToken !== null && currentRefreshToken !== null" class="font-medium float-right bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded mt-4 md:mt-0 text-xl" @click="logout">Logout</button>
+      <button v-else class="font-medium float-right bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded mt-4 md:mt-0 text-xl" @click="logout">Logout</button>
     </div>
       <!-- SHOW USERNAME -->
       <span class="ml-5 text-xl">
@@ -160,7 +219,8 @@ const updateEvents = async () => {
       <login-user
         v-if="isLoginOpen"
         @toggleModal="toggleLogin"
-        @callLoginUser="login"/>
+        @callLoginUser="login"
+      />
     </div>
 </header>
 </template>
