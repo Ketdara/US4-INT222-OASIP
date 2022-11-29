@@ -74,6 +74,7 @@ public class EventService {
         if(roles.contains("admin")) eventPage = eventRepository.findAll(PageRequest.of(page, pageSize, sort));
         else if(roles.contains("student")) eventPage = eventRepository.findAllByBookingEmail(email, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByLecturerId(userId, PageRequest.of(page, pageSize));
+        else if(roles.isEmpty() == true) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
@@ -90,6 +91,7 @@ public class EventService {
         if(roles.contains("admin")) eventPage = eventRepository.findAllByEventCategory_Id(categoryId, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("student")) eventPage = eventRepository.findAllByEventCategory_IdAndBookingEmail(categoryId, email, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByEventCategory_IdAndLecturerId(userId, categoryId, PageRequest.of(page, pageSize));
+        else if(roles.isEmpty() == true) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
@@ -107,6 +109,7 @@ public class EventService {
         if(roles.contains("admin")) eventPage = eventRepository.findEventUpcomingAll(now, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("student")) eventPage = eventRepository.findEventUpcomingAllAndEmail(now, email, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("lecturer")) eventPage = eventRepository.findEventUpcomingAllAndLecturerId(now, userId, PageRequest.of(page, pageSize));
+        else if(roles.isEmpty() == true) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
@@ -124,6 +127,7 @@ public class EventService {
         if(roles.contains("admin")) eventPage = eventRepository.findEventPastAll(now, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("student")) eventPage = eventRepository.findEventPastAllAndEmail(now, email, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("lecturer")) eventPage = eventRepository.findEventPastAllAndLecturerId(now, userId, PageRequest.of(page, pageSize));
+        else if(roles.isEmpty() == true) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);
@@ -142,6 +146,7 @@ public class EventService {
         if(roles.contains("admin")) eventPage = eventRepository.findAllByEventStartTimeBetween(thisDate, nextDate, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("student")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndBookingEmail(thisDate, nextDate, email, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndLecturerId(thisDate, nextDate, userId, PageRequest.of(page, pageSize));
+        else if(roles.isEmpty() == true) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
         return mapPageAndFormatStartTime(eventPage);

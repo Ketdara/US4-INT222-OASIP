@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onBeforeMount, onBeforeUpdate, onMounted } from 'vue';
+// import { useRoute } from 'vue-router';
 import { eventAPI } from "../src/script/eventAPI.js";
 import { eventCategoryAPI } from "../src/script/eventCategoryAPI.js";
 import ViewEventList from '../src/components/ViewEventList.vue';
@@ -12,10 +13,7 @@ import LoginUser from '../src/components/LoginUser.vue';
 import { userAPI } from "../src/script/userAPI.js";
 import router from "./router/index.js"
 
-// import customTokenCredential from './CustomTokenProvider';
-// import { BlobServiceClient } from '@azure/storage-blob';
 import { PublicClientApplication } from '@azure/msal-browser';
-// import { mapMutations } from 'vuex';
 
 // Show username
 const currentName = ref(null);
@@ -28,10 +26,7 @@ onBeforeUpdate(async () => {
 })
 
 onBeforeMount(async () => {
-  // selectedPageNum.value = 1
   updateCurrentUser();
-  // updateEvents();
-  // await getEventCategories();
 })
 const updateCurrentUser = () => {
   currentName.value = localStorage.getItem('name');
@@ -39,9 +34,6 @@ const updateCurrentUser = () => {
   currentRole.value = localStorage.getItem('role');
 }
 
-// const getEventCategories = async () => {
-//   eventCategories.value = await eventCategoryAPI.getEventCategories();
-// }
 // Login
 const isLoginOpen = ref(false);
 
@@ -53,93 +45,55 @@ const login = async (credentials) => {
   if(await userAPI.loginUser(credentials)) {
     alert("Login Successful");
     updateCurrentUser();
-    updateUsers();
+    // updateUsers();
     toggleLogin();
-    router.push({ name: 'OASIP'});
+    // router.go({ name: 'OASIP'});
+    if(router.currentRoute.value.name === "OASIP") router.go({ name: 'OASIP'});
+    else router.push({ name: 'OASIP'});
   }
 }
-
-// const postUser = async (user) => {
-//   if(await userAPI.postUser(user)) {
-//     updateUsers();
-//     resetPostUI();
-//   }
-// }
 
 onBeforeUpdate(async () => {
   updateCurrentUser();
 })
 
-// const maxPageNum = ref(1)
-// const selectedPageNum = ref(1)
-
-// const updateUsers = async () => {
-//   if(maxPageNum.value < selectedPageNum.value) {
-//     selectedPageNum.value = maxPageNum.value
-//   }
-//   if(selectedPageNum.value < 1) {
-//     selectedPageNum.value = 1
-//   }
-//   await getUsersAsPage(selectedPageNum.value);
-// }
-
-// var currentFilter = ref({
-//   by: "all",
-//   category: null,
-//   date: null
-// });
-
 // Logout
 const userList = ref([]);
-const logout = () => {
+
+// function deleteAllCookies() {
+//     var cookies = document.cookie.split(";");
+
+//     for (var i = 0; i < cookies.length; i++) {
+//         var cookie = cookies[i];
+//         var eqPos = cookie.indexOf("=");
+//         var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+//         document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+//     }
+// }
+
+const logout = async () => {
   if(confirm("Are you sure you want to confirm logout?") === true){
+
+    // let logoutRequest = {
+    //   account: msalInstance.value.getAccountByHomeId(localStorage.getItem('homeAccountId')),
+    //   mainWindowRedirectUri: "http://localhost:3000/us4/",
+    // };
+    // // console.log(msalInstance.value.getAccountByHomeId(localStorage.getItem('homeAccountId')));
+    // await msalInstance.value.logoutPopup(logoutRequest);
+    // console.log(router.currentRoute.value.name);
+    // console.log(this.$route.name);
+    
+    if(router.currentRoute.value.name === "OASIP") router.go({ name: 'OASIP'});
+    else router.push({ name: 'OASIP'});
+
     localStorage.clear();
     updateCurrentUser();
+    // deleteAllCookies();
+
     alert("Logout Successful");
 
-    // console.log(router.currentRoute);
-    router.push({ name: 'OASIP'});
-
-    // userList.value = null;
-    // maxPageNum.value = 1;
   }
 }
-
-// const getUsersAsPage = async (pageNum) => {
-//   try {
-//     userPage.value = await userAPI.getUsersAsPage(pageNum-1);
-//   }catch(err) {
-//     alert(err);
-//   }
-//   if(userPage.value !== null) {
-//     userList.value = userPage.value.content;
-//     maxPageNum.value = userPage.value.totalPages;
-//   }
-// }
-// const userPage = ref(null);
-
-// const getEventsAsPage = async (pageNum) => {
-//   try {
-//     eventPage.value = await eventAPI.getEventsAsPage(pageNum-1, currentFilter.value);
-//   }catch(err) {
-//     alert(err);
-//   }
-//   if(eventPage.value !== null) {
-//     eventList.value = eventPage.value.content;
-//     maxPageNum.value = eventPage.value.totalPages;
-//   }
-// }
-// const eventPage = ref(null);
-
-// const updateEvents = async () => {
-//   if(maxPageNum.value < selectedPageNum.value) {
-//     selectedPageNum.value = maxPageNum.value
-//   }
-//   if(selectedPageNum.value < 1) {
-//     selectedPageNum.value = 1
-//   }
-//   await getEventsAsPage(selectedPageNum.value);
-// }
 
 const msalConfig = {
   auth: {
@@ -147,22 +101,26 @@ const msalConfig = {
     authority:
       'https://login.microsoftonline.com/6f4432dc-20d2-441d-b1db-ac3380ba633d',
   },
-  cache: {
-    cacheLocation: 'sessionStorage',
-  },
+  // cache: {
+  //   cacheLocation: 'sessionStorage',
+  // },
   // scopes: ["user.read"],
 }
 
 const msalInstance = ref(new PublicClientApplication(msalConfig));
-const oasipAccount = ref(null)
+// const oasipAccount = ref(null)
 
 const msSignIn = async () => {
   await msalInstance.value
-    .loginPopup({})
+    .loginPopup({prompt: 'login'})
     .then(() => {
       let accounts = msalInstance.value.getAllAccounts();
-      oasipAccount.value = accounts[0];
-      msLogIn(oasipAccount.value);
+      // oasipAccount.value = accounts[0];
+      // console.log(accounts[0]);
+
+      localStorage.setItem('homeAccountId', accounts[0].homeAccountId);
+
+      msLogIn(accounts[0]);
     })
     .catch(error => {
       console.error(`error during authentication: ${error}`);
@@ -170,7 +128,7 @@ const msSignIn = async () => {
 }
 
 const msLogIn = async (account) => {
-  oasipAccount.value = account;
+  // oasipAccount.value = account;
   // console.log(oasipAccount.value.idTokenClaims);
   await getIDToken(account);
   await getAccessToken();
@@ -178,7 +136,9 @@ const msLogIn = async (account) => {
 
 const getIDToken = async (account) => {
   let request = {
-    account: account
+    account: account,
+    // prompt: 'select_account',
+    // prompt: 'login',
   };
   try {
     let tokenResponse = await msalInstance.value.acquireTokenSilent(request);
@@ -193,9 +153,11 @@ const getAccessToken = async () => {
   if(await userAPI.loginMSUser()) {
     alert("Login Successful");
     updateCurrentUser();
-    // updateUsers();
+
     toggleLogin();
-    router.push({ name: 'OASIP'});
+    // router.go({ name: 'OASIP'});
+    if(router.currentRoute.value.name === "OASIP") router.go({ name: 'OASIP'});
+    else router.push({ name: 'OASIP'});
   }
 }
 </script>

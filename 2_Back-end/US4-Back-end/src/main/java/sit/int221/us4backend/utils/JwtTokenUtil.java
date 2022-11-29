@@ -164,6 +164,11 @@ public class JwtTokenUtil implements Serializable {
         return (String) claims.get(Claims.SUBJECT);
     }
     public ArrayList<String> getRolesAsArrayList(Claims claims) {
-        return new ArrayList((Collection<?>)claims.get("roles"));
+        try {
+            return new ArrayList((Collection<?>) claims.get("roles"));
+        }catch(Exception e) {
+            System.out.println("no roles found");
+            return new ArrayList();
+        }
     }
 }
