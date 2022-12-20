@@ -16,6 +16,14 @@ const props = defineProps({
       password: null,
       confirmPassword: null
     }
+  },
+  currentRole: {
+    type: String,
+    default: null
+  },
+  eventCategoryList: {
+    type: Array,
+    default: []
   }
 })
 
@@ -68,6 +76,8 @@ const toggleShowPassword = () => {
         <li class="m-1">Password:</li>
         <li class="m-1">Confirm Password:</li>
         <li class="m-1">Role:</li>
+        <!-- <li class="m-1" v-if="currentRole === 'lecturer'">Category:</li> -->
+        <li class="m-1">Category: <button class="mx-1 px-1 font-semibold bg-black text-white rounded text-l hover:bg-gray-600 transition-color duration-200 delay-200">Show</button></li>
       </ul>
     </div>
     <div class="columnB">
@@ -82,6 +92,11 @@ const toggleShowPassword = () => {
             <option v-for="role in roleList" :key="role">{{role}}</option>
           </select>
         </li>
+        <!-- <div>
+          <li class="m-1 text-white" v-for="eventCategory in eventCategoryList" :key="eventCategory">
+            <input class="m-1" type="checkbox" :id=eventCategory.id /><label class="ml-1" :for=eventCategory.id>{{eventCategory.eventCategoryName}}</label>
+          </li>
+        </div> -->
       </ul>
     </div>
     <div class="columnC text-white">

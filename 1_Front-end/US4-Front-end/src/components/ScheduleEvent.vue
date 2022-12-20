@@ -55,7 +55,7 @@ const checkInputInvalid = () => {
   if(newEvent.value.eventCategory === null) return true;
   if(newEvent.value.eventStartTime === null) return true;
   if(newEvent.value.eventNotes.trim().length > 500) return true;
-  if(newEvent.value.attachment.size > 10485760) return true;
+  if(newEvent.value.attachment != null && newEvent.value.attachment.size > 10485760) return true;
   return false;
 }
 

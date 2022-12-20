@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onBeforeMount, onBeforeUpdate } from 'vue';
 import { userAPI } from "../script/userAPI.js";
+import { eventCategoryAPI } from "../script/eventCategoryAPI.js";
 import ViewUserList from '../components/ViewUserList.vue';
 import ViewUserDetails from '../components/ViewUserDetails.vue';
 import CreateUser from '../components/CreateUser.vue';
@@ -13,6 +14,7 @@ const userList = ref([]);
 const userPage = ref(null);
 
 const roleList = ref(['admin', 'lecturer', 'student'])
+const eventCategories = ref([]);
 
 const maxPageNum = ref(1)
 const selectedPageNum = ref(1)
@@ -47,6 +49,8 @@ const updateUsers = async () => {
     selectedPageNum.value = 1
   }
   await getUsersAsPage(selectedPageNum.value);
+  await getEventCategories()
+
 }
 
 onBeforeMount(async () => {
@@ -56,7 +60,6 @@ onBeforeMount(async () => {
 })
 
 const getUsersAsPage = async (pageNum) => {
-  console.log("Session expired : " + isSessionExpired.value);
   if(isSessionExpired.value == 'true') return
 
   try {
@@ -91,9 +94,13 @@ const putUser = async (user) => {
 }
 
 const deleteUser = async (id) => {
-  if(await userAPI.deleteUserById(id)) {
-    updateUsers();
-    user.value = {};
+  if(eventCategoryOwners.value.includes(id)) {
+    if(confirm("This user is a category owner, are you sure you want to remove this user?") === true) {
+      if(await userAPI.deleteUserById(id)) {
+        updateUsers();
+        user.value = {};
+      }
+    }
   }
 }
 
@@ -159,6 +166,19 @@ const logout = () => {
     userList.value = null;
     maxPageNum.value = 1;
   }
+}
+const eventCategoryOwners = ref([])
+
+const getEventCategories = async () => {
+  eventCategories.value = await eventCategoryAPI.getEventCategories();
+  eventCategories.value.forEach(category => {
+    category.eventCategoryOwners.forEach(owner => {
+      eventCategoryOwners.value.push(owner.id);
+      eventCategoryOwners.value = eventCategoryOwners.value.filter((element, index) => {
+        return eventCategoryOwners.value.indexOf(element) === index
+      })
+    })
+  });
 }
 
 </script>
@@ -227,6 +247,8 @@ const logout = () => {
             <create-user
               :roleList='roleList'
               :user='postUI'
+              :currentRole='currentRole'
+              :eventCategoryList='eventCategories'
               @callCreateUser="postUser"
             />
             </div>

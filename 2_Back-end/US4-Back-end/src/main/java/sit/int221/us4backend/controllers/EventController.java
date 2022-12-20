@@ -37,7 +37,7 @@ import java.nio.file.Paths;
 import java.sql.Array;
 import java.util.List;
 
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+//@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/events")
 public class EventController {
@@ -140,14 +140,20 @@ public class EventController {
     @ResponseStatus(HttpStatus.CREATED)
     public void postEvent(
             @RequestParam(required = false) MultipartFile file,
-            @RequestParam String eventString,
+            @RequestParam String event,
             HttpServletRequest request) {
 
-        String token = jwtTokenUtil.extractTokenFromHeader(request);
-        jwtTokenUtil.validateToken(token);
-        Claims claims = jwtTokenUtil.getAllClaimsFromToken(token);
+        String token;
+        Claims claims;
+        try{
+            token = jwtTokenUtil.extractTokenFromHeader(request);
+            jwtTokenUtil.validateToken(token);
+            claims = jwtTokenUtil.getAllClaimsFromToken(token);
+        }catch(ResponseStatusException e) {
+            claims = null;
+        }
 
-        EventWithValidateDTO newEventDTO = getEventFromString(eventString);
+        EventWithValidateDTO newEventDTO = getEventFromString(event);
 
         Event postedEvent = eventService.postEventDTO(newEventDTO, claims, file);
         String to = postedEvent.getBookingEmail();
@@ -167,7 +173,7 @@ public class EventController {
     @PutMapping("/{event_id}")
     public void putEvent(
             @RequestParam(required = false) MultipartFile file,
-            @RequestParam String eventString,
+            @RequestParam String event,
             @RequestParam(defaultValue = "false") boolean isFileUpdate,
             @PathVariable Integer event_id,
             HttpServletRequest request) {
@@ -176,7 +182,7 @@ public class EventController {
         jwtTokenUtil.validateToken(token);
         Claims claims = jwtTokenUtil.getAllClaimsFromToken(token);
 
-        EventWithValidateDTO newEventDTO = getEventFromString(eventString);
+        EventWithValidateDTO newEventDTO = getEventFromString(event);
 
         eventService.putEventDTO(newEventDTO, event_id, claims, isFileUpdate, file);
     }

@@ -66,7 +66,7 @@ public class ApplicationConfig {
         mailSender.setPort(587);
 
         mailSender.setUsername("chotiphat.que@mail.kmutt.ac.th");
-        mailSender.setPassword("Que_664499");
+        mailSender.setPassword("qpcmquimhxvqbykh");
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");

@@ -6,8 +6,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import sit.int221.us4backend.constraints.DurationNotNull;
+import sit.int221.us4backend.entities.User;
 
 import javax.validation.constraints.*;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,4 +29,6 @@ public class EventCategoryDTO {
     @Min(value = 1, message = "Duration cannot be less than 1 minute; ")
     @Max(value = 480, message = "Duration cannot be more than 480 minutes; ")
     private Integer eventDuration;
+
+    private List<UserFullDTO> eventCategoryOwners;
 }

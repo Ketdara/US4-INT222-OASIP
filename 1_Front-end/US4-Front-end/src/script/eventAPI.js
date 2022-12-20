@@ -90,7 +90,7 @@ export const eventAPI = {
       var blob = this.b64toBlob(event.file, ' ');
       event.url = URL.createObjectURL(blob);
       event.attachment = {name: event.fileName};
-      console.log(event);
+      // console.log(event);
 
       return event;
     }

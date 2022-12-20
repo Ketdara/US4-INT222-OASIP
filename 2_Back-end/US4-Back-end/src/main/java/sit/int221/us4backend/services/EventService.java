@@ -46,13 +46,11 @@ public class EventService {
     @Autowired
     private EventValidator eventValidator;
     @Autowired
-    private UserService userService;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
     private EventCategoryOwnerRepository eventCategoryOwnerRepository;
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+    @Autowired
+    private UserRepository userRepository;
 
     private Sort sort = Sort.by("eventStartTime").descending();
     private Integer maxDuration = 8;    // hours
@@ -73,7 +71,7 @@ public class EventService {
 
         if(roles.contains("admin")) eventPage = eventRepository.findAll(PageRequest.of(page, pageSize, sort));
         else if(roles.contains("student")) eventPage = eventRepository.findAllByBookingEmail(email, PageRequest.of(page, pageSize, sort));
-        else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByLecturerId(userId, PageRequest.of(page, pageSize));
+        else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByLecturerEmail(email, PageRequest.of(page, pageSize));
         else if(roles.isEmpty() == true) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
@@ -90,7 +88,7 @@ public class EventService {
 
         if(roles.contains("admin")) eventPage = eventRepository.findAllByEventCategory_Id(categoryId, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("student")) eventPage = eventRepository.findAllByEventCategory_IdAndBookingEmail(categoryId, email, PageRequest.of(page, pageSize, sort));
-        else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByEventCategory_IdAndLecturerId(userId, categoryId, PageRequest.of(page, pageSize));
+        else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByEventCategory_IdAndLecturerEmail(email, categoryId, PageRequest.of(page, pageSize));
         else if(roles.isEmpty() == true) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
@@ -108,7 +106,7 @@ public class EventService {
 
         if(roles.contains("admin")) eventPage = eventRepository.findEventUpcomingAll(now, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("student")) eventPage = eventRepository.findEventUpcomingAllAndEmail(now, email, PageRequest.of(page, pageSize, sort));
-        else if(roles.contains("lecturer")) eventPage = eventRepository.findEventUpcomingAllAndLecturerId(now, userId, PageRequest.of(page, pageSize));
+        else if(roles.contains("lecturer")) eventPage = eventRepository.findEventUpcomingAllAndLecturerEmail(now, email, PageRequest.of(page, pageSize));
         else if(roles.isEmpty() == true) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
@@ -126,7 +124,7 @@ public class EventService {
 
         if(roles.contains("admin")) eventPage = eventRepository.findEventPastAll(now, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("student")) eventPage = eventRepository.findEventPastAllAndEmail(now, email, PageRequest.of(page, pageSize, sort));
-        else if(roles.contains("lecturer")) eventPage = eventRepository.findEventPastAllAndLecturerId(now, userId, PageRequest.of(page, pageSize));
+        else if(roles.contains("lecturer")) eventPage = eventRepository.findEventPastAllAndLecturerEmail(now, email, PageRequest.of(page, pageSize));
         else if(roles.isEmpty() == true) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
@@ -145,7 +143,7 @@ public class EventService {
 
         if(roles.contains("admin")) eventPage = eventRepository.findAllByEventStartTimeBetween(thisDate, nextDate, PageRequest.of(page, pageSize, sort));
         else if(roles.contains("student")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndBookingEmail(thisDate, nextDate, email, PageRequest.of(page, pageSize, sort));
-        else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndLecturerId(thisDate, nextDate, userId, PageRequest.of(page, pageSize));
+        else if(roles.contains("lecturer")) eventPage = eventRepository.findAllByEventStartTimeBetweenAndLecturerEmail(thisDate, nextDate, email, PageRequest.of(page, pageSize));
         else if(roles.isEmpty() == true) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
         else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your role is invalid");
 
@@ -187,7 +185,7 @@ public class EventService {
     public EventWithValidateDTO getEventDTOById(Integer event_id, Claims claims) {
         Event event = eventRepository.findById(event_id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event " + event_id + " not found or does not exist"));
-        event.setEventStartTime(dateTimeManager.dateStringToISOString(event.getEventStartTime()));
+//        event.setEventStartTime(dateTimeManager.dateStringToISOString(event.getEventStartTime()));
 
         Integer userId = jwtTokenUtil.getUserIdAsInt(claims);
         String email = jwtTokenUtil.getEmailAsString(claims);
@@ -198,6 +196,7 @@ public class EventService {
                 if(!roles.contains("lecturer")) {       // not lecturer
                     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
                 }else {     // lecturer
+                    userId = userRepository.findByEmail(email).getId();
                     List<EventCategoryOwner> lecturerCategory = eventCategoryOwnerRepository.findAllById_UserId(userId);
                     if(!lecturerCategory.stream().anyMatch(category -> category.getId().getEventCategoryId() == event.getEventCategory().getId())) {
                         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this event");
@@ -232,12 +231,15 @@ public class EventService {
     public Event postEventDTO(EventWithValidateDTO newEventDTO, Claims claims, MultipartFile file) {
         callEventValidator(newEventDTO, false);
 
-        String email = jwtTokenUtil.getEmailAsString(claims);
-        ArrayList roles = jwtTokenUtil.getRolesAsArrayList(claims);
+        String email = null;
+        ArrayList roles = new ArrayList();
+        if(claims != null) {
+            email = jwtTokenUtil.getEmailAsString(claims);
+            roles = jwtTokenUtil.getRolesAsArrayList(claims);
+        }
 
-
-        if(!roles.contains("admin")) {
-            if(!roles.contains("student")) {        // lecturer and guest
+        if(!roles.contains("admin") && !roles.isEmpty()) {
+            if(!roles.contains("student")) {        // lecturer
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your role cannot access this feature");
             }
             else if(!newEventDTO.getBookingEmail().equals(email)) {     // invalid student

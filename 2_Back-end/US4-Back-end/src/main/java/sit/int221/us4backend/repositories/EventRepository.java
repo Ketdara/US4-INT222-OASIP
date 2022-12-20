@@ -36,18 +36,18 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     Page<Event> findAllByEventStartTimeBetweenAndBookingEmail(String minDate, String maxDate, String email, Pageable pageable);
 
     //for lecturer
-    @Query(value = "select e from Event e where e.eventCategory.id in (select o.id.eventCategoryId from EventCategoryOwner o where o.id.userId = ?1) order by e.eventStartTime desc")
-    Page<Event> findAllByLecturerId(Integer id, Pageable pageable);
+    @Query(value = "select e from Event e where e.eventCategory.id in (select o.id.eventCategoryId from EventCategoryOwner o where o.id.userId = (select u.id from User u where u.email = ?1)) order by e.eventStartTime desc")
+    Page<Event> findAllByLecturerEmail(String email, Pageable pageable);
 
-    @Query(value = "select e from Event e where e.eventCategory.id in (select o.id.eventCategoryId from EventCategoryOwner o where o.id.userId = ?1) and e.eventCategory.id = ?2 order by e.eventStartTime desc")
-    Page<Event> findAllByEventCategory_IdAndLecturerId(Integer id, Integer categoryId, Pageable pageable);
+    @Query(value = "select e from Event e where e.eventCategory.id in (select o.id.eventCategoryId from EventCategoryOwner o where o.id.userId = (select u.id from User u where u.email = ?1)) and e.eventCategory.id = ?2 order by e.eventStartTime desc")
+    Page<Event> findAllByEventCategory_IdAndLecturerEmail(String email, Integer categoryId, Pageable pageable);
 
-    @Query(value = "select e from Event e where e.eventCategory.id in (select o.id.eventCategoryId from EventCategoryOwner o where o.id.userId = ?2) and FUNCTION('ADDTIME', e.eventStartTime, FUNCTION('SEC_TO_TIME', e.eventDuration * 60)) > ?1 order by e.eventStartTime desc")
-    Page<Event> findEventUpcomingAllAndLecturerId(String minTime, Integer id, Pageable pageable);
+    @Query(value = "select e from Event e where e.eventCategory.id in (select o.id.eventCategoryId from EventCategoryOwner o where o.id.userId = (select u.id from User u where u.email = ?2)) and FUNCTION('ADDTIME', e.eventStartTime, FUNCTION('SEC_TO_TIME', e.eventDuration * 60)) > ?1 order by e.eventStartTime desc")
+    Page<Event> findEventUpcomingAllAndLecturerEmail(String minTime, String email, Pageable pageable);
 
-    @Query(value = "select e from Event e where e.eventCategory.id in (select o.id.eventCategoryId from EventCategoryOwner o where o.id.userId = ?2) and FUNCTION('ADDTIME', e.eventStartTime, FUNCTION('SEC_TO_TIME', e.eventDuration * 60)) <= ?1 order by e.eventStartTime desc")
-    Page<Event> findEventPastAllAndLecturerId(String now, Integer id, Pageable pageable);
+    @Query(value = "select e from Event e where e.eventCategory.id in (select o.id.eventCategoryId from EventCategoryOwner o where o.id.userId = (select u.id from User u where u.email = ?2)) and FUNCTION('ADDTIME', e.eventStartTime, FUNCTION('SEC_TO_TIME', e.eventDuration * 60)) <= ?1 order by e.eventStartTime desc")
+    Page<Event> findEventPastAllAndLecturerEmail(String now, String email, Pageable pageable);
 
-    @Query(value = "select e from Event e where e.eventCategory.id in (select o.id.eventCategoryId from EventCategoryOwner o where o.id.userId = ?3) and e.eventStartTime between ?1 and ?2 order by e.eventStartTime desc")
-    Page<Event> findAllByEventStartTimeBetweenAndLecturerId(String minDate, String maxDate, Integer id, Pageable pageable);
+    @Query(value = "select e from Event e where e.eventCategory.id in (select o.id.eventCategoryId from EventCategoryOwner o where o.id.userId = (select u.id from User u where u.email = ?3)) and e.eventStartTime between ?1 and ?2 order by e.eventStartTime desc")
+    Page<Event> findAllByEventStartTimeBetweenAndLecturerEmail(String minDate, String maxDate, String email, Pageable pageable);
 }

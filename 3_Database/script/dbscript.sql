@@ -107,11 +107,12 @@ INSERT INTO `user`(`name`,`email`,`password`,`role`) VALUES
 ('Sunisa Sathapornvajana','sunisa.sat@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$29/ffaszvjvi3CZO45bSCg$kKpfq5WEswoqa/LfyIZzQaQ6AFdjhyiYjXRCfMiTnwg','lecturer'),
 ('Somchai Jaidee','somchai.jai@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$dmsOy7LPTjmooPu+P2oTZA$NZFTFd3f0K1Sp19aaUwyn3jgiy15yFcXhp8E4/1yXoI','student'),
 ('Komkrid Rakdee','komkrid.rak@mail.kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$8W61ZOC5RU7sJP5kKRbSqg$OLwZNPeMqxp+g0Vbn+odcA47XMClFN+IswTueVah7F0','student'),
-('สมเกียรติ ขยันเรียน','somkiat.kay@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$gBqgjspF45FcIKQEw8GmaQ$alrOCZ0YrDqOu8/aZiLDMGZo4vFkSEAXA0YoHhY0BDQ','student');
+('สมเกียรติ ขยันเรียน','somkiat.kay@kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$gBqgjspF45FcIKQEw8GmaQ$alrOCZ0YrDqOu8/aZiLDMGZo4vFkSEAXA0YoHhY0BDQ','student'),
+('oasip lecturer-test-user','int491.user002@mail.kmutt.ac.th','$argon2id$v=19$m=4096,t=3,p=1$M1owZ3lVSllTcXdsVld3VA$50gSmA7Vf+cp+g9usggKcXFd0A','lecturer');
 
 -- insert to user --
 INSERT INTO `eventCategoryOwner`(`eventCategory_id`,`user_id`) VALUES 
-('1', '2'), ('2', '2'),('2','5'),('3','6'), ('4', '4'),('5', '3'), ('5', '2');
+('1', '2'), ('2', '2'),('2','5'),('3','6'), ('4', '4'),('5', '3'), ('5', '2'), ('2', '10');
 -- ----------------------- --
 create user 'dbconn'@'%' identified by 'int221';
 grant all privileges on *.* TO 'dbconn'@'%';

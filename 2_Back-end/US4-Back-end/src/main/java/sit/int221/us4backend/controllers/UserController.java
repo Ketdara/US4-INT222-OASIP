@@ -16,7 +16,7 @@ import sit.int221.us4backend.utils.JwtTokenUtil;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+//@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {

@@ -125,8 +125,8 @@ export const userAPI = {
     }
     if(res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404){
       res.json().then(promise => {
-        console.log('[deleteUserById] Error: User not found or does not exist');
-        alert('Error occurred: User not found or does not exist');
+        console.log('[deleteUserById] Error: ' + promise.message.replace(/; /g, '\n'));
+        alert(promise.message.replace(/; /g, '\n'));
       });
       return false;
     }

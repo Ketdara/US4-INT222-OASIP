@@ -25,7 +25,7 @@ public class EmailUtil {
             helper.setText(text);          // Booking Name, Event Category, When, Event Notes
             javaMailSender.send(message);
         } catch(Exception e){
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error when sending email");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 }

@@ -12,15 +12,19 @@ import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.*;
+import sit.int221.us4backend.entities.EventCategoryOwner;
 import sit.int221.us4backend.entities.User;
 import sit.int221.us4backend.model.JwtResponse;
 import sit.int221.us4backend.model.RefreshRequest;
 import sit.int221.us4backend.model.loginResponse;
+import sit.int221.us4backend.repositories.EventCategoryOwnerRepository;
 import sit.int221.us4backend.repositories.UserRepository;
 import sit.int221.us4backend.utils.JwtTokenUtil;
 import sit.int221.us4backend.utils.ListMapper;
 import sit.int221.us4backend.utils.UserValidator;
 
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,6 +34,8 @@ import java.util.List;
 public class UserService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EventCategoryOwnerRepository eventCategoryOwnerRepository;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -95,6 +101,15 @@ public class UserService {
     public void deleteUserDTOById(Integer user_id) {
         userRepository.findById(user_id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + user_id + " not found or does not exist"));
+        List<EventCategoryOwner> owners = eventCategoryOwnerRepository.findAllById_UserId(user_id);
+        Integer lastOwner = 0;
+        for (EventCategoryOwner owner : owners) {
+            if(eventCategoryOwnerRepository.findAllById_EventCategoryId(owner.getId().getEventCategoryId()).size() == 1) {
+                lastOwner++;
+            }
+        }
+        if(lastOwner > 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot remove the last category owner on " + lastOwner + " event category");
+        eventCategoryOwnerRepository.deleteAllById_UserId(user_id);
         userRepository.deleteById(user_id);
     }
 
@@ -191,12 +206,4 @@ public class UserService {
         return ResponseEntity.ok(new loginResponse(user.getId(), user.getName(), user.getEmail(), roles, jwtToken, refreshToken));
     }
 
-
-//    public User getUserFromEmail(String email) {
-//        try {
-//            return userRepository.findByEmail(email);
-//        }catch (NullPointerException e) {
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email from token " + email + " not found or does not exist");
-//        }
-//    }
 }

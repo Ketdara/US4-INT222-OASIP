@@ -6,17 +6,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.EventCategoryDTO;
+import sit.int221.us4backend.dtos.UserFullDTO;
 import sit.int221.us4backend.entities.EventCategory;
+import sit.int221.us4backend.entities.EventCategoryOwner;
+import sit.int221.us4backend.entities.User;
+import sit.int221.us4backend.repositories.EventCategoryOwnerRepository;
 import sit.int221.us4backend.repositories.EventCategoryRepository;
 import sit.int221.us4backend.utils.EventCategoryValidator;
 import sit.int221.us4backend.utils.ListMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class EventCategoryService {
     @Autowired
     private EventCategoryRepository eventCategoryRepository;
+    @Autowired
+    private EventCategoryOwnerRepository eventCategoryOwnerRepository;
+    @Autowired
+    private UserService userService;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -26,7 +35,21 @@ public class EventCategoryService {
 
     public List<EventCategoryDTO> getEventCategoryDTOs() {
         List<EventCategory> eventCategories = eventCategoryRepository.findAll();
-        return listMapper.mapList(eventCategories, EventCategoryDTO.class, modelMapper);
+        List<EventCategoryDTO> eventCategorieDTOs = new ArrayList<>();
+
+        for (EventCategory category : eventCategories) {
+            EventCategoryDTO categoryDTO = modelMapper.map(category, EventCategoryDTO.class);
+            List<UserFullDTO> owners = new ArrayList<>();
+
+            List<EventCategoryOwner> ownerIDs = eventCategoryOwnerRepository.findAllById_EventCategoryId(category.getId());
+            for (EventCategoryOwner ownerID : ownerIDs) {
+                owners.add(userService.getUserDTOById(ownerID.getId().getUserId()));
+            }
+            categoryDTO.setEventCategoryOwners(owners);
+            eventCategorieDTOs.add(categoryDTO);
+        }
+
+        return eventCategorieDTOs;
     }
 
     public EventCategory putEventCategoryDTO(EventCategoryDTO newEventCategoryDTO, Integer eventCategory_id) {
