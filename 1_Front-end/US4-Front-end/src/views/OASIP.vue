@@ -44,7 +44,7 @@ var currentFilter = ref({
 
 const updateEvents = async () => {
   if(isSessionExpired.value === 'true') return
-
+  
   if(maxPageNum.value < selectedPageNum.value) {
     selectedPageNum.value = maxPageNum.value
   }
@@ -84,7 +84,7 @@ const getEventCategories = async () => {
 
 const getEventById = async (id) => {
   isLoading.value = true
-
+  
   event.value = await eventAPI.getEventById(id);
   isEditing.value = false;
   isLoading.value = false
@@ -157,18 +157,18 @@ const toggleModal = () => {
       <!-- Event List & Filter -->
       <div class="bg-neutral-100 rounded-lg col-span-1 row-span-2 p-3"> 
         <h2 class="font-semibold">Event List : </h2>
-
+        
         <div v-if="currentRole !== null">
           <filter-event
-            :eventCategoryList='eventCategories'
-            @setFilter="setFilter"
+          :eventCategoryList='eventCategories'
+          @setFilter="setFilter"
           />
           <div v-if="eventList.length > 0">
             <button v-for="page in maxPageNum" :key="page" @click="getEventsAsPage(page)" class="bg-black text-white rounded text-l active:bg-gray-600 py px-2 mx-1 mt-1 transition-color duration-000 delay-000">{{ page }}</button>
             <view-event-list 
-              :eventList='eventList'
-              :eventCategoryList='eventCategories'
-              @callShowEvent="getEventById"
+            :eventList='eventList'
+            :eventCategoryList='eventCategories'
+            @callShowEvent="getEventById"
             />
           </div>
           <div class="m-5 text-l" v-else>
@@ -181,34 +181,33 @@ const toggleModal = () => {
         </div>
         <div class="m-5 text-l grid grid-cols-5 gap-x-10 gap-y-8" v-else>Please login.</div>
       </div>
-
+      
       <!-- Create Event -->
       <div class="bg-neutral-700 rounded-lg p-3">
         <h2 class="font-semibold text-white">Create Event : </h2>
         <div v-if="currentRole === null || !currentRole.toString().match('lecturer')">
           <schedule-event
-            :event='postUI'
-            :eventCategoryList='eventCategories'
-            @callCreateEvent="postEvent"
-            :currentRole="currentRole"
-            :currentEmail="currentEmail"
+          :event='postUI'
+          :eventCategoryList='eventCategories'
+          @callCreateEvent="postEvent"
+          :currentRole="currentRole"
+          :currentEmail="currentEmail"
           />
         </div>
         <div class="m-5 text-l text-white" v-else>User prohibited.</div>
       </div>
       
-
       <!-- Event details -->
       <div class="bg-neutral-200 rounded-l p-3">
         <h2 class="font-semibold">Show Details : </h2>
         <div v-if="currentRole !== null">
           <view-event-details
-            v-if="!isEditing"
-            :event='event'
-            @callEditEvent="toggleEdit"
-            @callRemoveEvent="deleteEvent"
-            :currentRole="currentRole"
-            :isLoading="isLoading"
+          v-if="!isEditing"
+          :event='event'
+          @callEditEvent="toggleEdit"
+          @callRemoveEvent="deleteEvent"
+          :currentRole="currentRole"
+          :isLoading="isLoading"
           />
           <div v-if="!currentRole.toString().match('lecturer')">
             <reschedule-event
@@ -224,11 +223,8 @@ const toggleModal = () => {
         </div>
         <div class="m-5 text-l" v-else>Please login.</div>
       </div>
-
     </div>
   </div>
-
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

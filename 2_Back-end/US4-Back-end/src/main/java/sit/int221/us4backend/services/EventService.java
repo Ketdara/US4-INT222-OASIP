@@ -9,14 +9,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.EventTimeframeDTO;
 import sit.int221.us4backend.dtos.EventWithValidateDTO;
 import sit.int221.us4backend.entities.Event;
 import sit.int221.us4backend.entities.EventCategoryOwner;
-import sit.int221.us4backend.entities.User;
 import sit.int221.us4backend.repositories.EventCategoryOwnerRepository;
 import sit.int221.us4backend.repositories.EventRepository;
 import sit.int221.us4backend.dtos.EventPartialDTO;
@@ -26,7 +24,6 @@ import sit.int221.us4backend.utils.EventValidator;
 import sit.int221.us4backend.utils.JwtTokenUtil;
 import sit.int221.us4backend.utils.ListMapper;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -185,7 +182,6 @@ public class EventService {
     public EventWithValidateDTO getEventDTOById(Integer event_id, Claims claims) {
         Event event = eventRepository.findById(event_id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event " + event_id + " not found or does not exist"));
-//        event.setEventStartTime(dateTimeManager.dateStringToISOString(event.getEventStartTime()));
 
         Integer userId = jwtTokenUtil.getUserIdAsInt(claims);
         String email = jwtTokenUtil.getEmailAsString(claims);

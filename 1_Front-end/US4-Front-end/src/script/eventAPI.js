@@ -90,7 +90,6 @@ export const eventAPI = {
       var blob = this.b64toBlob(event.file, ' ');
       event.url = URL.createObjectURL(blob);
       event.attachment = {name: event.fileName};
-      // console.log(event);
 
       return event;
     }
@@ -120,15 +119,6 @@ export const eventAPI = {
     formData.append('file', event.attachment);
 
     const res = await fetch(import.meta.env.VITE_BASE_URL + 'events', { method: 'POST',
-    //   headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, 'content-type': 'application/json' },
-    //   body: JSON.stringify({
-    //     bookingName: event.bookingName,
-    //     bookingEmail: event.bookingEmail,
-    //     eventCategory: event.eventCategory,
-    //     eventStartTime: event.eventStartTime === "1970-01-01 00:00:00" ? null : event.eventStartTime,
-    //     eventNotes: event.eventNotes
-    //   })
-    // })
     headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`},
     body: formData
   })
@@ -151,7 +141,6 @@ export const eventAPI = {
 
   putEvent: async function (event) {
     this.localToUTC(event);
-    // console.log(event);
     const eventData = JSON.stringify({
       id: event.id,
       bookingName: event.bookingName,
@@ -166,15 +155,6 @@ export const eventAPI = {
     formData.append('isFileUpdate', true);
 
     const res = await fetch(import.meta.env.VITE_BASE_URL + `events/${event.id}`, { method: 'PUT',
-    //   headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, 'content-type': 'application/json' },
-    //   body: JSON.stringify({
-    //     bookingName: event.bookingName,
-    //     bookingEmail: event.bookingEmail,
-    //     eventCategory: event.eventCategory,
-    //     eventStartTime: event.eventStartTime === "1970-01-01 00:00:00" ? null : event.eventStartTime,
-    //     eventNotes: event.eventNotes
-    //   })
-    // })
     headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`},
     body: formData
   })

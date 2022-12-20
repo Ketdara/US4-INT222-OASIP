@@ -1,9 +1,7 @@
 package sit.int221.us4backend.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import sit.int221.us4backend.dtos.CredentialsDTO;
 import sit.int221.us4backend.dtos.UserPartialDTO;
-import sit.int221.us4backend.dtos.UserPostDTO;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;

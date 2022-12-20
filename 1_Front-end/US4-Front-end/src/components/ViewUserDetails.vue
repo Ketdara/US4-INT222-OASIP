@@ -15,21 +15,21 @@ const deleteConfirmation = () => {
 </script>
 
 <template>
-<div class="ml-5 mt-3">
-  <div v-if="Object.keys(user).length > 0">
-    <ul class="my-4">
-      <li class="m-2 font-bold text-l">User Information: </li>
-      <li class="m-2">▸ {{ user.name }}</li>
-      <li class="m-2">▸ {{ user.email }}</li>
-      <li class="m-2">▸ {{ user.role }}</li>
-    </ul>
-    <ul class="my-4">
-      <li class="m-2 font-bold text-l">Time Information:</li>
-      <li class="m-2">Created ▸ {{ new Date(user.createdOn) }}</li>
-      <li class="m-2">Updated ▸ {{ new Date(user.updatedOn) }}</li>
-    </ul>
-    <div class="float-right">
-      <button
+  <div class="ml-5 mt-3">
+    <div v-if="Object.keys(user).length > 0">
+      <ul class="my-4">
+        <li class="m-2 font-bold text-l">User Information: </li>
+        <li class="m-2">▸ {{ user.name }}</li>
+        <li class="m-2">▸ {{ user.email }}</li>
+        <li class="m-2">▸ {{ user.role }}</li>
+      </ul>
+      <ul class="my-4">
+        <li class="m-2 font-bold text-l">Time Information:</li>
+        <li class="m-2">Created ▸ {{ new Date(user.createdOn) }}</li>
+        <li class="m-2">Updated ▸ {{ new Date(user.updatedOn) }}</li>
+      </ul>
+      <div class="float-right">
+        <button
         @click="$emit('callEditUser');"
         class="font-semibold mt-1 mr-2 bg-black text-white rounded text-l hover:bg-gray-600 px-2 transition-color duration-200 delay-200">
         Edit
@@ -45,6 +45,4 @@ const deleteConfirmation = () => {
 </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

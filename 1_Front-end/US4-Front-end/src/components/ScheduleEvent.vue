@@ -81,66 +81,66 @@ const nowFormatted = ref(now.value.getFullYear() + "-" + ("0"+(now.value.getMont
 </script>
 
 <template>
-<div class="ml-5">
-  <div class="flex">
-    <div class="columnA text-white text-right">
-      <ul>
-        <li class="m-1">Event Category:</li>
-        <li class="m-1">Booking Name:</li>
-        <li class="m-1">Booking Email:</li>
-        <li class="m-1">Event Start Time:</li>
-        <li class="m-1 inline text-left">Event Notes:(optional)</li>
-      </ul>
+  <div class="ml-5">
+    <div class="flex">
+      <div class="columnA text-white text-right">
+        <ul>
+          <li class="m-1">Event Category:</li>
+          <li class="m-1">Booking Name:</li>
+          <li class="m-1">Booking Email:</li>
+          <li class="m-1">Event Start Time:</li>
+          <li class="m-1 inline text-left">Event Notes:(optional)</li>
+        </ul>
+      </div>
+      <div class="columnB">
+        <ul>
+          <li class="m-1">
+            <select class="input" v-model="selectedCategory">
+              <option v-for="eventCategory in eventCategoryList" :key="eventCategory">{{eventCategory.eventCategoryName}}</option>
+            </select>
+          </li>
+          <li class="m-1"><input class="input" type="text" v-model="event.bookingName"></li>
+          <li class="m-1 text-white" v-if="currentRole !== null && currentEmail !== null && currentRole.toString().match('student')">{{newEvent.bookingEmail}}</li>
+          <li class="m-1" v-else><input class="input" type="text" v-model="event.bookingEmail"></li>
+          <li class="m-1"><input class="input" type="datetime-local" v-model="event.eventStartTime" :min=nowFormatted></li>
+          <li class="m-1"><input class="input" type="text" v-model="event.eventNotes"></li>
+          
+        </ul>
+      </div>
+      <div class="columnC text-white">
+        <ul>
+          <li class="m-1"><br></li>
+          <li class="m-1"><span v-if="event.bookingName !== null"><span v-if="event.bookingName.trim().length > 0" :style="event.bookingName.trim().length <= 100 ? { color: 'white' } : { color: 'red' }">{{event.bookingName.trim().length}}/100</span></span><br v-else></li>
+          <li class="m-1"><span v-if="event.bookingEmail !== null"><span v-if="event.bookingEmail.trim().length > 0" :style="event.bookingEmail.trim().length <= 100 ? { color: 'white' } : { color: 'red' }">{{event.bookingEmail.trim().length}}/100</span></span><br v-else></li>
+          <li class="m-1"><br></li>
+          <li class="m-1"><span v-if="event.eventNotes !== null"><span v-if="event.eventNotes.trim().length > 0" :style="event.eventNotes.trim().length <= 500 ? { color: 'white' } : { color: 'red' }">{{event.eventNotes.trim().length}}/500</span></span><br v-else></li>
+        </ul>
+      </div>
     </div>
-    <div class="columnB">
+    <div class="mx-1">
       <ul>
-        <li class="m-1">
-          <select class="input" v-model="selectedCategory">
-            <option v-for="eventCategory in eventCategoryList" :key="eventCategory">{{eventCategory.eventCategoryName}}</option>
-          </select>
-        </li>
-        <li class="m-1"><input class="input" type="text" v-model="event.bookingName"></li>
-        <li class="m-1 text-white" v-if="currentRole !== null && currentEmail !== null && currentRole.toString().match('student')">{{newEvent.bookingEmail}}</li>
-        <li class="m-1" v-else><input class="input" type="text" v-model="event.bookingEmail"></li>
-        <li class="m-1"><input class="input" type="datetime-local" v-model="event.eventStartTime" :min=nowFormatted></li>
-        <li class="m-1"><input class="input" type="text" v-model="event.eventNotes"></li>
-
-      </ul>
-    </div>
-    <div class="columnC text-white">
-      <ul>
-        <li class="m-1"><br></li>
-        <li class="m-1"><span v-if="event.bookingName !== null"><span v-if="event.bookingName.trim().length > 0" :style="event.bookingName.trim().length <= 100 ? { color: 'white' } : { color: 'red' }">{{event.bookingName.trim().length}}/100</span></span><br v-else></li>
-        <li class="m-1"><span v-if="event.bookingEmail !== null"><span v-if="event.bookingEmail.trim().length > 0" :style="event.bookingEmail.trim().length <= 100 ? { color: 'white' } : { color: 'red' }">{{event.bookingEmail.trim().length}}/100</span></span><br v-else></li>
-        <li class="m-1"><br></li>
-        <li class="m-1"><span v-if="event.eventNotes !== null"><span v-if="event.eventNotes.trim().length > 0" :style="event.eventNotes.trim().length <= 500 ? { color: 'white' } : { color: 'red' }">{{event.eventNotes.trim().length}}/500</span></span><br v-else></li>
-      </ul>
-    </div>
-  </div>
-  <div class="mx-1">
-    <ul>
-      <li class="text-white">
-        <span class="columnA text-right">Attachment(10 MB): (optional)</span>
-        <span class="fileSelect"><input type="file" @change="selectFile">
-          <span v-if="event.attachment !== null && event.attachment.name !== undefined && event.attachment.name !== null">
-            {{event.attachment.name.length > 22 ? event.attachment.name.slice(0, 10) + "..." + event.attachment.name.slice(-10) : event.attachment.name}}
-            <button type="button" class="close" aria-label="Close" @click="event.attachment = null">
-              <span aria-hidden="true">&times;</span>
-            </button>
+        <li class="text-white">
+          <span class="columnA text-right">Attachment(10 MB): (optional)</span>
+          <span class="fileSelect"><input type="file" @change="selectFile">
+            <span v-if="event.attachment !== null && event.attachment.name !== undefined && event.attachment.name !== null">
+              {{event.attachment.name.length > 22 ? event.attachment.name.slice(0, 10) + "..." + event.attachment.name.slice(-10) : event.attachment.name}}
+              <button type="button" class="close" aria-label="Close" @click="event.attachment = null">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </span>
           </span>
-        </span>
-      </li>
-    </ul>
-
-    <button 
-    :disabled="checkInputInvalid()"
-    :style="!checkInputInvalid() ? { color: 'white' } : { color: 'transparent' }"
-    @click="$emit('callCreateEvent', newEvent)"
-    class="font-semibold my-2 mt-2 bg-black text-white rounded text-l disabled:bg-transparent hover:bg-gray-600 px-4 transition-color duration-200 delay-200">
-      Post
-    </button>
+        </li>
+      </ul>
+      
+      <button 
+        :disabled="checkInputInvalid()"
+        :style="!checkInputInvalid() ? { color: 'white' } : { color: 'transparent' }"
+        @click="$emit('callCreateEvent', newEvent)"
+        class="font-semibold my-2 mt-2 bg-black text-white rounded text-l disabled:bg-transparent hover:bg-gray-600 px-4 transition-color duration-200 delay-200">
+        Post
+      </button>
+    </div>
   </div>
-</div>
 </template>
 
 <style scoped>

@@ -21,7 +21,6 @@ export const eventCategoryAPI = {
   },
 
   putEventCategory: async function (eventCategory) {
-    // console.log(eventCategory);
     const res = await fetch(import.meta.env.VITE_BASE_URL + `event-categories/${eventCategory.id}`, { method: 'PUT',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({

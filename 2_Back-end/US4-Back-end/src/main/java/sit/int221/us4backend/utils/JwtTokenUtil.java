@@ -1,15 +1,8 @@
 package sit.int221.us4backend.utils;
 
 import java.io.Serializable;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
-import java.util.function.Function;
 
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;

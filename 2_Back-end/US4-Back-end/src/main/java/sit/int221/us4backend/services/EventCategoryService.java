@@ -9,7 +9,6 @@ import sit.int221.us4backend.dtos.EventCategoryDTO;
 import sit.int221.us4backend.dtos.UserFullDTO;
 import sit.int221.us4backend.entities.EventCategory;
 import sit.int221.us4backend.entities.EventCategoryOwner;
-import sit.int221.us4backend.entities.User;
 import sit.int221.us4backend.repositories.EventCategoryOwnerRepository;
 import sit.int221.us4backend.repositories.EventCategoryRepository;
 import sit.int221.us4backend.utils.EventCategoryValidator;

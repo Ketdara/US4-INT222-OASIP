@@ -41,7 +41,7 @@ const updateCurrentUser = async () => {
 
 const updateUsers = async () => {
   if(isSessionExpired.value === 'true') return
-
+  
   if(maxPageNum.value < selectedPageNum.value) {
     selectedPageNum.value = maxPageNum.value
   }
@@ -50,7 +50,7 @@ const updateUsers = async () => {
   }
   await getUsersAsPage(selectedPageNum.value);
   await getEventCategories()
-
+  
 }
 
 onBeforeMount(async () => {
@@ -61,7 +61,7 @@ onBeforeMount(async () => {
 
 const getUsersAsPage = async (pageNum) => {
   if(isSessionExpired.value == 'true') return
-
+  
   try {
     userPage.value = await userAPI.getUsersAsPage(pageNum-1);
   }catch(err) {
@@ -162,7 +162,7 @@ const logout = () => {
     localStorage.clear();
     updateCurrentUser();
     alert("Logout Successful");
-
+    
     userList.value = null;
     maxPageNum.value = 1;
   }
@@ -185,111 +185,97 @@ const getEventCategories = async () => {
 
 <template>
   <div>
-  <div>
-    <match-user
+    <div>
+      <match-user
       v-if="isMatchOpen"
       @toggleModal="toggleMatch"
       @callMatchUser="match"/>
-  </div>
-  <div class="ml-10 -mb-2">
-    <!-- <div class="font-semibold text-2xl">OASIP</div>
-    <p v-if="currentName === null" class="text-l inline">Online Appointment Scheduling System for Integrated Project Clinics</p>
-    <p v-else class="text-l inline">Welcome user: <span class="ml-1" style="color:Lime;">{{currentName.slice(0, 30)}}</span></p>
-    <button class="mr-10 font-semibold float-right" @click="toggleLogin">Login</button> -->
-
-    <!-- <button v-if="currentToken !== null && currentRefreshToken !== null" class="mr-10 font-semibold float-right" @click="logout">Logout</button> -->
-    <button v-if="currentToken !== null && currentRefreshToken !== null" class="mr-5" @click="refresh">Refresh</button>
-    <button v-if="currentRole !== null && currentRole.toString().match('admin')" class="mr-5" @click="toggleMatch">Match</button>  
-  </div> 
-  <!-- End-buttons -->
-
-<div class="grid justify-items-start ">
-  <!-- <div>
-    <login-user
-      v-if="isLoginOpen"
-      @toggleModal="toggleLogin"
-      @callLoginUser="login"/>
-  </div> -->
-
-  <div class="px-8">
-    <div class="mt-8 grid grid-cols-2 gap-x-10 gap-y-8 rounded-lg">
-      <!-- User List -->
-      <div class="bg-neutral-100 rounded-lg col-span-1 row-span-2 p-3"> 
-        <h2 class="font-semibold">User List : </h2>
-        <div v-if="currentRole !== null && currentEmail !== null">
-          <div v-if="currentRole.toString().match('admin')">
-            <div v-if="userList !== null && userList !== undefined">
-
-              <div v-if="userList.length > 0">
-                <button v-for="page in maxPageNum" :key="page" @click="getUsersAsPage(page)" class="bg-black text-white rounded text-l active:bg-gray-600 py px-2 mx-1 mt-1 transition-color duration-000 delay-000">{{ page }}</button>
-                <view-user-list 
-                  :userList='userList'
-                  @callShowUser="getUserById"
-                />
+    </div>
+    <div class="ml-10 -mb-2">
+      <button v-if="currentToken !== null && currentRefreshToken !== null" class="mr-5" @click="refresh">Refresh</button>
+      <button v-if="currentRole !== null && currentRole.toString().match('admin')" class="mr-5" @click="toggleMatch">Match</button>  
+    </div> 
+    <!-- End-buttons -->
+    
+    <div class="grid justify-items-start ">
+      <div class="px-8">
+        <div class="mt-8 grid grid-cols-2 gap-x-10 gap-y-8 rounded-lg">
+          <!-- User List -->
+          <div class="bg-neutral-100 rounded-lg col-span-1 row-span-2 p-3"> 
+            <h2 class="font-semibold">User List : </h2>
+            <div v-if="currentRole !== null && currentEmail !== null">
+              <div v-if="currentRole.toString().match('admin')">
+                <div v-if="userList !== null && userList !== undefined">
+                  
+                  <div v-if="userList.length > 0">
+                    <button v-for="page in maxPageNum" :key="page" @click="getUsersAsPage(page)" class="bg-black text-white rounded text-l active:bg-gray-600 py px-2 mx-1 mt-1 transition-color duration-000 delay-000">{{ page }}</button>
+                    <view-user-list 
+                    :userList='userList'
+                    @callShowUser="getUserById"
+                    />
+                  </div>
+                  
+                </div>
+                <div class="m-5 text-l grid grid-cols-5 gap-x-10 gap-y-8" v-else>No user.</div> 
               </div>
-
+              <div class="m-5 text-l grid grid-cols-5 gap-x-10 gap-y-8 " v-else>User prohibited.</div>
             </div>
-            <div class="m-5 text-l grid grid-cols-5 gap-x-10 gap-y-8" v-else>No user.</div> 
+            <div class="m-5 text-l" v-else-if="isSessionExpired === 'true'">
+              <span style="color:crimson">Session expired</span>, please refresh your token in the user page.
+            </div>
+            <div class="m-5 text-l grid grid-cols-5 gap-x-10 gap-y-8" v-else>Please login.</div>
+            
           </div>
-          <div class="m-5 text-l grid grid-cols-5 gap-x-10 gap-y-8 " v-else>User prohibited.</div>
-        </div>
-        <div class="m-5 text-l" v-else-if="isSessionExpired === 'true'">
-          <span style="color:crimson">Session expired</span>, please refresh your token in the user page.
-        </div>
-        <div class="m-5 text-l grid grid-cols-5 gap-x-10 gap-y-8" v-else>Please login.</div>
-
-        </div>
-        <!-- Create User -->
-        <div class="bg-neutral-700 rounded-lg p-3">
-          <h2 class="font-semibold text-white">Create User : </h2>
+          <!-- Create User -->
+          <div class="bg-neutral-700 rounded-lg p-3">
+            <h2 class="font-semibold text-white">Create User : </h2>
             <div v-if="currentRole !== null && currentEmail !== null" >
               <div v-if="currentRole.toString().match('admin')">
-            <create-user
-              :roleList='roleList'
-              :user='postUI'
-              :currentRole='currentRole'
-              :eventCategoryList='eventCategories'
-              @callCreateUser="postUser"
-            />
+                <create-user
+                :roleList='roleList'
+                :user='postUI'
+                :currentRole='currentRole'
+                :eventCategoryList='eventCategories'
+                @callCreateUser="postUser"
+                />
+              </div>
+              <div class="text-white ml-5" v-else >User prohibited.</div>
             </div>
-            <div class="text-white ml-5" v-else >User prohibited.</div>
+            <div class="m-5 text-white" v-else-if="isSessionExpired === 'true'">
+              Session expired.
+            </div>
+            <div class="m-5 text-l text-white" v-else>Please login.</div> 
           </div>
-          <div class="m-5 text-white" v-else-if="isSessionExpired === 'true'">
-            Session expired.
+          
+          <!-- User details -->
+          <div class="bg-neutral-200 rounded-lg p-3">
+            <h2 class="font-semibold">Show Details : </h2>
+            <div v-if="currentRole !== null && currentEmail !== null" >
+              <div v-if="currentRole.toString().match('admin')">
+                <view-user-details
+                v-if="!isEditing"
+                :user='user'
+                @callEditUser="toggleEdit"
+                @callRemoveUser="deleteUser"
+                />
+                <edit-user
+                v-if="isEditing"
+                :roleList='roleList'
+                :user='user'
+                @callPutUserProceed="putUser"
+                @callPutUserCancel="toggleEdit"
+                />
+              </div> 
+              <div v-else class="ml-5">User prohibited.</div>
+            </div>
+            <div class="m-5 text-l" v-else-if="isSessionExpired === 'true'">
+              Session expired.
+            </div>
+            <div class="m-5 text-l" v-else>Please login.</div> 
           </div>
-          <div class="m-5 text-l text-white" v-else>Please login.</div> 
-        </div>
-
-      <!-- User details -->
-      <div class="bg-neutral-200 rounded-lg p-3">
-        <h2 class="font-semibold">Show Details : </h2>
-        <div v-if="currentRole !== null && currentEmail !== null" >
-          <div v-if="currentRole.toString().match('admin')">
-            <view-user-details
-              v-if="!isEditing"
-              :user='user'
-              @callEditUser="toggleEdit"
-              @callRemoveUser="deleteUser"
-            />
-            <edit-user
-              v-if="isEditing"
-              :roleList='roleList'
-              :user='user'
-              @callPutUserProceed="putUser"
-              @callPutUserCancel="toggleEdit"
-            />
-          </div> 
-          <div v-else class="ml-5">User prohibited.</div>
-        </div>
-        <div class="m-5 text-l" v-else-if="isSessionExpired === 'true'">
-          Session expired.
-        </div>
-        <div class="m-5 text-l" v-else>Please login.</div> 
         </div>
       </div>
-  </div>
-</div>
-    
+    </div>
   </div>
 </template>
 

@@ -1,6 +1,5 @@
 package sit.int221.us4backend.services;
 
-import io.jsonwebtoken.Claims;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,8 +13,6 @@ import org.springframework.web.server.ResponseStatusException;
 import sit.int221.us4backend.dtos.*;
 import sit.int221.us4backend.entities.EventCategoryOwner;
 import sit.int221.us4backend.entities.User;
-import sit.int221.us4backend.model.JwtResponse;
-import sit.int221.us4backend.model.RefreshRequest;
 import sit.int221.us4backend.model.loginResponse;
 import sit.int221.us4backend.repositories.EventCategoryOwnerRepository;
 import sit.int221.us4backend.repositories.UserRepository;
@@ -23,11 +20,7 @@ import sit.int221.us4backend.utils.JwtTokenUtil;
 import sit.int221.us4backend.utils.ListMapper;
 import sit.int221.us4backend.utils.UserValidator;
 
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 @Service

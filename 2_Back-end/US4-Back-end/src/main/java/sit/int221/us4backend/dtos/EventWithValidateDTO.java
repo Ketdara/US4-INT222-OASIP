@@ -7,7 +7,6 @@ import lombok.Setter;
 import sit.int221.us4backend.constraints.PastString;
 
 import javax.validation.constraints.*;
-import java.io.File;
 
 @Getter
 @Setter

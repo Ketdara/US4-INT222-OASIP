@@ -7,7 +7,6 @@ import User from '../views/User.vue'
 import EventCategory from '../views/EventCategory.vue'
 
 const history = createWebHistory(import.meta.env.BASE_URL)
-// const history = createWebHistory()
 const routes = [
   {
     path: '/',
