@@ -1,6 +1,7 @@
 ## Workspace  
 - [Taskboard](https://trello.com/invite/b/qBKWwdcO/ATTIf7860a8757ef07069f7ce3dbd7675c487523D1F0/int222-us4)  
-- [Notes](https://docs.google.com/document/d/1LXetnJUBPNBjlJpO-OatmYpJ3J6juR4hyQT8qYEgIns/edit)  
+- [INT222 Notes](https://docs.google.com/document/d/1LXetnJUBPNBjlJpO-OatmYpJ3J6juR4hyQT8qYEgIns/edit?usp=sharing)
+- [INT221 Notes](https://docs.google.com/document/d/1in1dkt_o66Ah-vtRYANaMNUrckOjo5jQNCO45kzVgnQ/edit?usp=sharing)
 - [Physical Backup](https://drive.google.com/drive/u/2/folders/10jUR14LOrA48Goaa_fY3WpdKkOPBqtD2)  
 - [Assignment](https://docs.google.com/spreadsheets/d/1_kVxxASEbwKwiijRRXXU42mFAeTZXHfI8Z6YEvtxtUc/edit?usp=sharing)  
   
